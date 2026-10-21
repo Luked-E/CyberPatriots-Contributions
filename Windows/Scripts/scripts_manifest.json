@@ -160,34 +160,34 @@
           ]
         },
         {
-          "id": "smb_file_sharing",
+          "id": "windows_file_sharing",
           "title": "SMB & Windows File Sharing",
-          "description": "Configures SMB file sharing services and protocols.",
-          "script_path": "Sub_Scripts\\Sec_SMBSharing.ps1",
+          "description": "Hardens SMB: encryption, signing, anonymous access, NTLM/LM settings, SMBGhost, SMB firewall profiles; closes open SMB sessions and lists non-default shares for README review.",
+          "script_path": "Sub_Scripts\\2_2_WindowsFileSharing.ps1",
           "options": [
             {
-              "name": "SMBv1State",
-              "flag": "-SMBv1State",
+              "name": "SMB1State",
+              "flag": "-SMB1State",
               "type": "select",
               "choices": ["Disabled", "Enabled"],
               "default": "Disabled",
-              "description": "SMBv1 protocol state"
+              "description": "SMBv1 protocol/feature state (enable only if the README requires legacy SMB)"
             },
             {
-              "name": "SMBServerState",
-              "flag": "-SMBServerState",
+              "name": "SMBCompression",
+              "flag": "-SMBCompression",
               "type": "select",
               "choices": ["Disabled", "Enabled"],
               "default": "Disabled",
-              "description": "LanmanServer (Server service) state"
+              "description": "SMB compression state (SMBGhost mitigation when Disabled)"
             }
           ]
         },
         {
-          "id": "remote_desktop_rdp",
+          "id": "rdp_services",
           "title": "Remote Desktop Services (RDP)",
-          "description": "Configures Remote Desktop Services (RDP) state and Network Level Authentication.",
-          "script_path": "Sub_Scripts\\Sec_RemoteDesktop.ps1",
+          "description": "Sets RDP state, requires NLA, enforces High encryption/SSL, idle and disconnect time limits, Restricted Admin, blocks drive/COM/LPT redirection, disables Remote Assistance, and configures RDP services and firewall.",
+          "script_path": "Sub_Scripts\\2_3_RemoteDesktop.ps1",
           "options": [
             {
               "name": "RDPState",

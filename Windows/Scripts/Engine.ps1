@@ -1,5 +1,5 @@
 # ==============================================================================
-# CyberPatriot Windows Security Orchestrator - Interactive Arrow-Key CLI Engine
+# CyberPatriot Windows Security Suite - Interactive Arrow-Key CLI Engine
 # ==============================================================================
 
 [Console]::CursorVisible = $false
@@ -165,6 +165,12 @@ function Show-InteractiveMenu {
                 if ($selectedIndex -ge $MenuItems.Length) { 
                     $selectedIndex = 0 
                 }
+            }
+            "LeftArrow" {
+                return -1
+            }
+            "RightArrow" {
+                return $selectedIndex
             }
             "PageUp" {
                 $selectedIndex = [Math]::Max(0, $selectedIndex - $maxVisible)
@@ -767,13 +773,13 @@ try {
             "Run All Checklist Scripts in Sequence (Queue All Walkthrough)",
             "Execute Queued Scripts ($($script:ExecutionQueue.Count) ready)",
             "Change Target Windows Version (Current: $GlobalOS)",
-            "Exit Orchestrator"
+            "Exit Suite"
         )
 
         $choice = Show-InteractiveMenu "Main Menu - Select an Option" $mainMenuItems $mainMenuIndex
         if ($choice -eq -1 -or $choice -eq 4) {
             Clear-ScreenBuffer
-            Write-Host "Exiting CyberPatriot Orchestrator. Good luck!" -ForegroundColor Green
+            Write-Host "Exiting CyberPatriot SUITE. Good luck!" -ForegroundColor Green
             break
         }
 
