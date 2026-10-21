@@ -1,0 +1,340 @@
+{
+  "windows_versions": [
+    "Windows 11",
+    "Windows 10",
+    "Windows Server 2022",
+    "Windows Server 2019",
+    "Windows Server 2008"
+  ],
+  "default_windows_version": "Windows 11",
+  "categories": [
+    {
+      "category_name": "General Security Settings and Configurations",
+      "scripts": [
+        {
+          "id": "settings_app",
+          "title": "Windows Settings App Configurations",
+          "description": "Configures AutoPlay, Telemetry, Delivery Optimization, Developer Mode, Lock Screen Notifications, and Clipboard security settings.",
+          "script_path": "Sub_Scripts\\1_1_WindowsUserSettings.ps1",
+          "options": [
+            {
+              "name": "DeliveryOptimizationMode",
+              "flag": "-DeliveryOptimizationMode",
+              "type": "select",
+              "choices": ["Disabled", "LocalNetwork"],
+              "default": "Disabled",
+              "description": "Delivery Optimization peer download sharing mode"
+            }
+          ]
+        },
+        {
+          "id": "control_panel",
+          "title": "Control Panel",
+          "description": "Hardens Control Panel baselines: sets UAC to maximum ('Always Notify') and enables Windows Defender Firewall across Domain, Private, and Public profiles with inbound blocked by default.",
+          "script_path": "Sub_Scripts\\1_2_ControlPanel.ps1",
+          "options": []
+        },
+        {
+          "id": "local_security_policy",
+          "title": "Local Security Policy (secpol.msc & gpedit.msc)",
+          "description": "Enforces Account Password/Lockout Policies, comprehensive Success/Failure Advanced Audit Policies, User Rights Assignment, and Security Options.",
+          "script_path": "Sub_Scripts\\1_3_LocalSecurityPolicy.ps1",
+          "options": []
+        },
+        {
+          "id": "lusrmgr",
+          "title": "Local Users and Groups (lusrmgr.msc)",
+          "description": "Audits local accounts, disables built-in Guest and default Administrator, removes unauthorized users from Administrators group, and clears PasswordNeverExpires flag.",
+          "script_path": "Sub_Scripts\\1_4_LocalUsersGroups.ps1",
+          "options": []
+        },
+        {
+          "id": "computer_management",
+          "title": "Computer Management",
+          "description": "Removes unauthorized file shares, audits unneeded services, and expands Security, System, and Application Event Log maximum sizes.",
+          "script_path": "Sub_Scripts\\1_5_ComputerManagement.ps1",
+          "options": []
+        },
+        {
+          "id": "windows_security",
+          "title": "Windows Security & Threat Protection",
+          "description": "Enables Windows Defender Real-Time Protection, Cloud Delivery, Tamper Protection, Potentially Unwanted App (PUA) blocking, and updates signatures.",
+          "script_path": "Sub_Scripts\\1_6_WindowsSecurity.ps1",
+          "options": []
+        },
+        {
+          "id": "task_manager",
+          "title": "Task Manager",
+          "description": "Audits startup applications, checks RUN registry keys for rogue persistence, and flags suspicious background processes.",
+          "script_path": "Sub_Scripts\\1_7_TaskManager.ps1",
+          "options": []
+        },
+        {
+          "id": "task_scheduler",
+          "title": "Task Scheduler (taskschd.msc)",
+          "description": "Audits scheduled tasks for reverse shells, netcat, unauthorized binaries, and suspicious script arguments.",
+          "script_path": "Sub_Scripts\\1_8_TaskScheduler.ps1",
+          "options": []
+        },
+        {
+          "id": "registry_editor",
+          "title": "Registry Editor (regedit.exe)",
+          "description": "Enforces critical system registry hardening: RunAsPPL LSA protection against credential dumping, SafeDllSearchMode, AutoRun disable, and screensaver timeout.",
+          "script_path": "Sub_Scripts\\1_9_RegistryEditor.ps1",
+          "options": []
+        },
+        {
+          "id": "Security Commands",
+          "title": "Command Prompt & PowerShell Security Commands",
+          "description": "Enforces PowerShell ExecutionPolicy RemoteSigned, enables Deep Script Block Logging, Module Logging, and Transcription.",
+          "script_path": "Sub_Scripts\\1_10_SecurityCommands.ps1",
+          "options": []
+        },
+        {
+          "id": "file_system_media",
+          "title": "File System, Drive Security & Prohibited Media Files",
+          "description": "Scans drives for prohibited media files (mp3, mp4, avi, wav, etc.), audits sensitive file NTFS permissions, and checks hidden directories.",
+          "script_path": "Sub_Scripts\\1_11_FileSystemSecurity.ps1",
+          "options": []
+        }
+      ]
+    },
+    {
+      "category_name": "Features, Applications, Services, and Servers",
+      "scripts": [
+        {
+          "id": "server_windows_features",
+          "title": "Server Roles & Windows Features Framework",
+          "description": "Disables insecure/legacy Windows features (SMB1, Telnet, TFTP, Simple TCP/IP, FTP, IIS, Internet Printing, WSL, Sandbox) and removes unneeded Server roles.",
+          "script_path": "Sub_Scripts\\2_1_ServerWindowsFeatures.ps1",
+          "options": [
+            {
+              "name": "KeepIIS",
+              "flag": "-KeepIIS",
+              "type": "switch",
+              "default": false,
+              "description": "Keep IIS on Windows 10/11 (this machine is a designated web server)"
+            },
+            {
+              "name": "KeepADDS",
+              "flag": "-KeepADDS",
+              "type": "switch",
+              "default": false,
+              "description": "Keep Active Directory Domain Services (this machine is a domain controller)"
+            },
+            {
+              "name": "KeepDHCP",
+              "flag": "-KeepDHCP",
+              "type": "switch",
+              "default": false,
+              "description": "Keep the DHCP Server role (Windows Server only)"
+            },
+            {
+              "name": "KeepRDS",
+              "flag": "-KeepRDS",
+              "type": "switch",
+              "default": false,
+              "description": "Keep Remote Desktop Services roles (Windows Server only)"
+            },
+            {
+              "name": "KeepADCS",
+              "flag": "-KeepADCS",
+              "type": "switch",
+              "default": false,
+              "description": "Keep Active Directory Certificate Services roles (Windows Server only)"
+            },
+            {
+              "name": "KeepVirtualPlatform",
+              "flag": "-KeepVirtualMachinePlatform",
+              "type": "switch",
+              "default": false,
+              "description": "Keep Virtual Machine Platform (needed if Credential Guard is instructed)"
+            },
+            {
+              "name": "KeepFTP",
+              "flag": "-KeepFTP",
+              "type": "switch",
+              "default": false,
+              "description": "Keep all FTP features (IIS FTP Server, TFTP Client) and the IIS role"
+            }
+          ]
+        },
+        {
+          "id": "smb_file_sharing",
+          "title": "SMB & Windows File Sharing",
+          "description": "Configures SMB file sharing services and protocols.",
+          "script_path": "Sub_Scripts\\Sec_SMBSharing.ps1",
+          "options": [
+            {
+              "name": "SMBv1State",
+              "flag": "-SMBv1State",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "SMBv1 protocol state"
+            },
+            {
+              "name": "SMBServerState",
+              "flag": "-SMBServerState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "LanmanServer (Server service) state"
+            }
+          ]
+        },
+        {
+          "id": "remote_desktop_rdp",
+          "title": "Remote Desktop Services (RDP)",
+          "description": "Configures Remote Desktop Services (RDP) state and Network Level Authentication.",
+          "script_path": "Sub_Scripts\\Sec_RemoteDesktop.ps1",
+          "options": [
+            {
+              "name": "RDPState",
+              "flag": "-RDPState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "Remote Desktop feature state"
+            }
+          ]
+        },
+        {
+          "id": "remote_admin_winrm",
+          "title": "Remote Administration & Management",
+          "description": "Configures Windows Remote Management, PowerShell Remoting, and Remote Registry services.",
+          "script_path": "Sub_Scripts\\Sec_RemoteAdmin.ps1",
+          "options": [
+            {
+              "name": "WinRMState",
+              "flag": "-WinRMState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "Windows Remote Management (WinRM / PSRemoting) state"
+            },
+            {
+              "name": "RemoteRegistryState",
+              "flag": "-RemoteRegistryState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "Remote Registry service state"
+            }
+          ]
+        },
+        {
+          "id": "email_servers",
+          "title": "Email & Messaging Servers (SMTP)",
+          "description": "Configures SMTP email services.",
+          "script_path": "Sub_Scripts\\Sec_EmailServers.ps1",
+          "options": [
+            {
+              "name": "SMTPState",
+              "flag": "-SMTPState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "Simple Mail Transfer Protocol (SMTP) service state"
+            }
+          ]
+        },
+        {
+          "id": "network_services_legacy",
+          "title": "Network Services & Legacy Protocols",
+          "description": "Configures legacy and insecure network services. (FTP, TFTP, Telnet, SNMP, SSDP, UPnP, RIP Listener, Simple TCP/IP)",
+          "script_path": "Sub_Scripts\\Sec_LegacyProtocols.ps1",
+          "options": [
+            {
+              "name": "FTPTelnetState",
+              "flag": "-FTPTelnetState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "FTP and Telnet server services state"
+            },
+            {
+              "name": "UPnPSSDPState",
+              "flag": "-UPnPSSDPState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "UPnP Device Host and SSDP Discovery services state"
+            },
+            {
+              "name": "SNMPState",
+              "flag": "-SNMPState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "SNMP Service state"
+            },
+            {
+              "name": "SimpleTCPIPState",
+              "flag": "-SimpleTCPIPState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "Simple TCP/IP Services state"
+            }
+          ]
+        },
+        {
+          "id": "network_stack_resolution",
+          "title": "Network Stack & Name Resolution",
+          "description": "Configures network stack resolution protocols and settings. (IPv6, NetBIOS over TCP/IP, LLMNR, DNS Client, SYN Flood Protection)",
+          "script_path": "Sub_Scripts\\Sec_NetworkStack.ps1",
+          "options": [
+            {
+              "name": "IPv6State",
+              "flag": "-IPv6State",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "IPv6 protocol state"
+            },
+            {
+              "name": "LLMNRState",
+              "flag": "-LLMNRState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "Link-Local Multicast Name Resolution (LLMNR) state"
+            },
+            {
+              "name": "NetBIOSState",
+              "flag": "-NetBIOSState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "NetBIOS over TCP/IP state"
+            }
+          ]
+        },
+        {
+          "id": "ad_domain_services",
+          "title": "Active Directory Domain Services & GPMC",
+          "description": "Hardens Domain Controller security baselines, Kerberos policies, and audits privileged groups.",
+          "script_path": "Sub_Scripts\\Sec_ActiveDirectory.ps1",
+          "options": []
+        },
+        {
+          "id": "print_spooler",
+          "title": "Print Spooler & Printer Drivers",
+          "description": "Configures Print Spooler service state to remediate remote print vulnerabilities (e.g. PrintNightmare).",
+          "script_path": "Sub_Scripts\\Sec_PrintSpooler.ps1",
+          "options": [
+            {
+              "name": "PrintSpoolerState",
+              "flag": "-PrintSpoolerState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "Print Spooler service state"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

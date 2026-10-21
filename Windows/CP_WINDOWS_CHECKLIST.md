@@ -6,52 +6,52 @@ A comprehensive, consolidated security guide and operational checklist for Cyber
 
 ## Table of Contents
 
-- [General Security Settings and Configurations](#general-security-settings-and-configurations)
-  - [Settings App](#settings-app)
-  - [Control Panel](#control-panel)
-  - [Local Security Policy (secpol.msc & gpedit.msc)](#local-security-policy-secpolmsc--gpeditmsc)
-  - [Local Users and Groups (lusrmgr.msc)](#local-users-and-groups-lusrmgrmsc)
-  - [Computer Management (compmgnt.msc)](#computer-management-compmgntmsc)
-  - [Windows Security & Threat Protection](#windows-security--threat-protection)
-  - [Task Manager](#task-manager)
-  - [Task Scheduler (taskschd.msc)](#task-scheduler-taskschdmsc)
-  - [Registry Editor (regedit.exe)](#registry-editor-regeditexe)
-  - [Command Prompt & PowerShell Security Commands](#command-prompt--powershell-security-commands)
-  - [File System, Drive Security & Prohibited Media Files](#file-system-drive-security--prohibited-media-files)
-- [Features, Applications, Services, and Servers](#features-applications-services-and-servers)
-  - [Server Roles & Windows Features Framework](#server-roles--windows-features-framework)
-  - [SMB & Windows File Sharing](#smb--windows-file-sharing)
-  - [Remote Desktop Services (RDP)](#remote-desktop-services-rdp)
-  - [Web Browsers (Chrome, Firefox, Internet Explorer, Edge)](#web-browsers-chrome-firefox-internet-explorer-edge)
-  - [Web Servers (IIS, Apache, Abyss Web Server)](#web-servers-iis-apache-abyss-web-server)
-  - [Database Servers (Microsoft SQL Server & MariaDB / MySQL)](#database-servers-microsoft-sql-server--mariadb--mysql)
-  - [Remote Administration & Management (WinRM, PowerShell Remoting, Remote Registry)](#remote-administration--management-winrm-powershell-remoting-remote-registry)
-  - [Email & Messaging Servers (SMTP)](#email--messaging-servers-smtp)
-  - [Network Services & Legacy Protocols (FTP, TFTP, Telnet, SNMP, SSDP, UPnP, RIP Listener, Simple TCP/IP)](#network-services--legacy-protocols-ftp-tftp-telnet-snmp-ssdp-upnp-rip-listener-simple-tcpip)
-  - [Network Stack & Name Resolution (IPv6, NetBIOS over TCP/IP, LLMNR, DNS Client, SYN Flood Protection)](#network-stack--name-resolution-ipv6-netbios-over-tcpip-llmnr-dns-client-syn-flood-protection)
-  - [Active Directory Domain Services & GPMC (Domain Controllers)](#active-directory-domain-services--gpmc-domain-controllers)
-  - [Print Spooler & Printer Drivers](#print-spooler--printer-drivers)
-  - [Third-Party Software Management & Required Updates](#third-party-software-management--required-updates)
-  - [Unauthorized Software, Hacking Tools & Malware Removal](#unauthorized-software-hacking-tools--malware-removal)
-  - [Critical Policies: Do NOT Do Unless Instructed by README](#critical-policies-do-not-do-unless-instructed-by-readme)
-- [Competition Scenarios, Forensics Solutions & Reference Notes](#competition-scenarios-forensics-solutions--reference-notes)
-  - [General Competition Strategy & Golden Rules](#general-competition-strategy--golden-rules)
-  - [Competition 1 (25-26 Windows 11) Debrief & Forensics](#competition-1-25-26-windows-11-debrief--forensics)
-  - [Competition 2 (25-26 Windows 11) Debrief & Forensics](#competition-2-25-26-windows-11-debrief--forensics)
-  - [Competition 3 Gold (Server 2019) Debrief & Forensics](#competition-3-gold-server-2019-debrief--forensics)
-  - [Competition 4 Gold Semifinals (Windows 11 / Server 2022) Debrief & Forensics](#competition-4-gold-semifinals-windows-11--server-2022-debrief--forensics)
-  - [Complete Readme / Scenario Reference (Mr. Robot / E-Corp Challenge)](#complete-readme--scenario-reference-mr-robot--e-corp-challenge)
-  - [CyberPatriot Master Password & Credential Cheatsheet](#cyberpatriot-master-password--credential-cheatsheet)
+- [1. General Security Settings and Configurations](#general-security-settings-and-configurations)
+  - [1.1 Settings App](#settings-app)
+  - [1.2 Control Panel](#control-panel)
+  - [1.3 Local Security Policy (secpol.msc & gpedit.msc)](#local-security-policy-secpolmsc--gpeditmsc)
+  - [1.4 Local Users and Groups (lusrmgr.msc)](#local-users-and-groups-lusrmgrmsc)
+  - [1.5 Computer Management (compmgnt.msc)](#computer-management-compmgntmsc)
+  - [1.6 Windows Security & Threat Protection](#windows-security--threat-protection)
+  - [1.7 Task Manager](#task-manager)
+  - [1.8 Task Scheduler (taskschd.msc)](#task-scheduler-taskschdmsc)
+  - [1.9 Registry Editor (regedit.exe)](#registry-editor-regeditexe)
+  - [1.10 Command Prompt & PowerShell Security Commands](#command-prompt--powershell-security-commands)
+  - [1.11 File System, Drive Security & Prohibited Media Files](#file-system-drive-security--prohibited-media-files)
+- [2. Features, Applications, Services, and Servers](#features-applications-services-and-servers)
+  - [2.1 Server Roles & Windows Features Framework](#server-roles--windows-features-framework)
+  - [2.2 SMB & Windows File Sharing](#smb--windows-file-sharing)
+  - [2.3 Remote Desktop Services (RDP)](#remote-desktop-services-rdp)
+  - [2.4 Web Browsers (Chrome, Firefox, Internet Explorer, Edge)](#web-browsers-chrome-firefox-internet-explorer-edge)
+  - [2.5 Web Servers (IIS, Apache, Abyss Web Server)](#web-servers-iis-apache-abyss-web-server)
+  - [2.6 Database Servers (Microsoft SQL Server & MariaDB / MySQL)](#database-servers-microsoft-sql-server--mariadb--mysql)
+  - [2.7 Remote Administration & Management (WinRM, PowerShell Remoting, Remote Registry)](#remote-administration--management-winrm-powershell-remoting-remote-registry)
+  - [2.8 Email & Messaging Servers (SMTP)](#email--messaging-servers-smtp)
+  - [2.9 Network Services & Legacy Protocols (FTP, TFTP, Telnet, SNMP, SSDP, UPnP, RIP Listener, Simple TCP/IP)](#network-services--legacy-protocols-ftp-tftp-telnet-snmp-ssdp-upnp-rip-listener-simple-tcpip)
+  - [2.10 Network Stack & Name Resolution (IPv6, NetBIOS over TCP/IP, LLMNR, DNS Client, SYN Flood Protection)](#network-stack--name-resolution-ipv6-netbios-over-tcpip-llmnr-dns-client-syn-flood-protection)
+  - [2.11 Active Directory Domain Services & GPMC (Domain Controllers)](#active-directory-domain-services--gpmc-domain-controllers)
+  - [2.12 Print Spooler & Printer Drivers](#print-spooler--printer-drivers)
+  - [2.13 Third-Party Software Management & Required Updates](#third-party-software-management--required-updates)
+  - [2.14 Unauthorized Software, Hacking Tools & Malware Removal](#unauthorized-software-hacking-tools--malware-removal)
+  - [2.15 Critical Policies: Do NOT Do Unless Instructed by README](#critical-policies-do-not-do-unless-instructed-by-readme)
+- [3. Competition Scenarios, Forensics Solutions & Reference Notes](#competition-scenarios-forensics-solutions--reference-notes)
+  - [3.1 General Competition Strategy & Golden Rules](#general-competition-strategy--golden-rules)
+  - [3.2 Competition 1 (25-26 Windows 11) Debrief & Forensics](#competition-1-25-26-windows-11-debrief--forensics)
+  - [3.3 Competition 2 (25-26 Windows 11) Debrief & Forensics](#competition-2-25-26-windows-11-debrief--forensics)
+  - [3.4 Competition 3 Gold (Server 2019) Debrief & Forensics](#competition-3-gold-server-2019-debrief--forensics)
+  - [3.5 Competition 4 Gold Semifinals (Windows 11 / Server 2022) Debrief & Forensics](#competition-4-gold-semifinals-windows-11--server-2022-debrief--forensics)
+  - [3.6 Complete Readme / Scenario Reference (Mr. Robot / E-Corp Challenge)](#complete-readme--scenario-reference-mr-robot--e-corp-challenge)
+  - [3.7 CyberPatriot Master Password & Credential Cheatsheet](#cyberpatriot-master-password--credential-cheatsheet)
 
 ---
 
-# General Security Settings and Configurations
+# 1. General Security Settings and Configurations
 
 > **Important**: This section contains baseline security configurations that should universally be enforced on every Windows workstation or server image, organized strictly by the application/console used to manage them. Application-, server-, protocol-, and feature-specific settings (such as RDP, SMB, IIS, SQL, Chrome, WinRM, etc.) are separated into the second major section.
 
 ---
 
-## Settings App
+## 1.1 Settings App
 
 Access via: `Win + I` or Start Menu $\to$ **Settings**
 
@@ -121,7 +121,7 @@ Access via: `Win + I` or Start Menu $\to$ **Settings**
 
 ---
 
-## Control Panel
+## 1.2 Control Panel
 
 Access via: `Win + R` $\to$ `control` $\to$ Enter
 
@@ -205,7 +205,7 @@ Access via: `Win + R` $\to$ `control` $\to$ Enter
 
 ---
 
-## Local Security Policy (secpol.msc & gpedit.msc)
+## 1.3 Local Security Policy (secpol.msc & gpedit.msc)
 
 Access via: `Win + R` $\to$ `secpol.msc` $\to$ Enter (or `gpedit.msc` for full Group Policy)
 
@@ -295,7 +295,7 @@ Navigate to: `Security Settings` $\to$ `Local Policies` $\to$ `Security Options`
 #### Interactive Logon
 - **Interactive logon: Do not display last user name**: **Enabled**.
 - **Interactive logon: Do not require CTRL+ALT+DEL**: **Disabled** (forces CTRL+ALT+DEL before login prompt to block fake logon dialogs).
-- **Interactive logon: Message text for users attempting to log on**: Set organizational legal warning banner (e.g., *"Authorized Use Only. All activities are monitored and logged."* or competition title like *"Saxons Rock"*).
+- **Interactive logon: Message text for users attempting to log on**: Set organizational legal warning banner (e.g., *"Authorized Use Only. All activities are monitored and logged."*).
 - **Interactive logon: Message title for users attempting to log on**: Set banner title (e.g., *"WARNING: Legal Notice"*).
 - **Interactive logon: Number of previous logons to cache (in case domain controller is not available)**: Set to **0** (or 1).
 - **Interactive logon: Prompt user to change password before expiration**: **14 days** (or 5 days).
@@ -372,7 +372,7 @@ Navigate to: `Security Settings` $\to$ `Local Policies` $\to$ `Security Options`
 
 ---
 
-## Local Users and Groups (lusrmgr.msc)
+## 1.4 Local Users and Groups (lusrmgr.msc)
 
 Access via: `Win + R` $\to$ `lusrmgr.msc` $\to$ Enter
 
@@ -450,7 +450,7 @@ Access via: `Win + R` $\to$ `lusrmgr.msc` $\to$ Enter
 
 ---
 
-## Computer Management (compmgnt.msc)
+## 1.5 Computer Management (compmgnt.msc)
 
 Access via: `Win + R` $\to$ `compmgnt.msc` $\to$ Enter
 
@@ -464,7 +464,7 @@ Access via: `Win + R` $\to$ `compmgnt.msc` $\to$ Enter
 ### 2. Event Viewer Log Sizes & Settings
 - **Path**: `System Tools` $\to$ `Event Viewer` $\to$ `Windows Logs`.
 - **Right-click `Security`, `System`, `Application`** $\to$ `Properties`:
-  - Verify **Maximum log size** is at least **16384 KB** (or 32768 KB / 65536 KB).
+  - Verify **Maximum log size** is at least **16384 KB** but choose **65536 KB** if available.
   - Ensure **"Overwrite events as needed"** is selected so auditing does not abruptly halt.
 
 ### 3. Device Manager Hidden Device Audit
@@ -505,7 +505,7 @@ Access via: `Win + R` $\to$ `compmgnt.msc` $\to$ Enter
 
 ---
 
-## Windows Security & Threat Protection
+## 1.6 Windows Security & Threat Protection
 
 Access via: `Win + S` $\to$ Type `Windows Security` $\to$ Enter
 
@@ -583,7 +583,7 @@ Access via: `Win + S` $\to$ Type `Windows Security` $\to$ Enter
 
 ---
 
-## Task Manager
+## 1.7 Task Manager
 
 Access via: `Ctrl + Shift + Esc` $\to$ Click `More details`
 
@@ -621,7 +621,7 @@ Access via: `Ctrl + Shift + Esc` $\to$ Click `More details`
 
 ---
 
-## Task Scheduler (taskschd.msc)
+## 1.8 Task Scheduler (taskschd.msc)
 
 Access via: `Win + R` $\to$ `taskschd.msc` $\to$ Enter (or `control schedtasks`)
 
@@ -671,7 +671,7 @@ Access via: `Win + R` $\to$ `taskschd.msc` $\to$ Enter (or `control schedtasks`)
 
 ---
 
-## Registry Editor (regedit.exe)
+## 1.9 Registry Editor (regedit.exe)
 
 Access via: `Win + R` $\to$ `regedit` $\to$ Enter
 
@@ -718,7 +718,7 @@ Access via: `Win + R` $\to$ `regedit` $\to$ Enter
 
 ---
 
-## Command Prompt & PowerShell Security Commands
+## 1.10 Command Prompt & PowerShell Security Commands
 
 Run administrative shell via: `Win + X` $\to$ **Windows Terminal (Admin)** or `powershell` (Run as Administrator)
 
@@ -786,7 +786,7 @@ Get-SmbOpenFile | Format-Table -AutoSize
 
 ---
 
-## File System, Drive Security & Prohibited Media Files
+## 1.11 File System, Drive Security & Prohibited Media Files
 
 ### 1. Root Drive Permissions & System Directories
 - **Path**: `C:\` $\to$ Right-click $\to$ `Properties` $\to$ `Security` tab.
@@ -867,13 +867,13 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
 ---
 ---
 
-# Features, Applications, Services, and Servers
+# 2. Features, Applications, Services, and Servers
 
 > **Important**: This section contains instructions for enabling, disabling, and hardening specific Windows features, third-party software, background services, network servers, and protocols.
 
 ---
 
-## Server Roles & Windows Features Framework
+## 2.1 Server Roles & Windows Features Framework
 
 ### 1. Windows 10 & 11 Features Configuration
 - **GUI Path**: `Control Panel` $\to$ `Programs` $\to$ `Programs and Features` $\to$ **Turn Windows features on or off**.
@@ -926,7 +926,7 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
 
 ---
 
-## SMB & Windows File Sharing
+## 2.2 SMB & Windows File Sharing
 
 ### 1. Disable SMBv1 Protocol
 - **Method 1 - Windows Features GUI**:
@@ -1004,9 +1004,17 @@ Navigate to: `secpol.msc` $\to$ `Security Settings` $\to$ `Local Policies` $\to$
 
 ---
 
-## Remote Desktop Services (RDP)
+## 2.3 Remote Desktop Services (RDP)
 
-### 1. System Properties Configuration (sysdm.cpl)
+
+### 1. Modern Remote Desktop Toggle Verification
+- **Path (Settings GUI)**:
+  - `Settings` $\to$ `System` $\to$ `Remote Desktop`.
+  - If RDP is **NOT authorized**: Verify toggle is **Off**; if On, toggle it to **Off** and confirm.
+  - If RDP is **REQUIRED**: Toggle to **On**, expand settings, and ensure **"Require computers to use Network Level Authentication (NLA) to connect"** is checked.
+- **Security Justification**: In Windows 10/11, toggling RDP in `sysdm.cpl` can sometimes leave the modern UWP Settings toggle out of sync.
+
+### 2. System Properties Configuration (sysdm.cpl)
 - **GUI Path**: `Win + R` $\to$ `sysdm.cpl` $\to$ Enter $\to$ **Remote** tab.
 - **When RDP is NOT required**:
   - Uncheck **"Allow Remote Assistance connections to this computer"**.
@@ -1015,11 +1023,11 @@ Navigate to: `secpol.msc` $\to$ `Security Settings` $\to$ `Local Policies` $\to$
   - Select **"Allow remote connections to this computer"**.
   - Ensure the checkbox is checked: **"Allow connections only from computers running Remote Desktop with Network Level Authentication (recommended)"** (NLA).
 
-### 2. Remote Desktop User Group Management (lusrmgr.msc)
+### 3. Remote Desktop User Group Management (lusrmgr.msc)
 - **Path**: `lusrmgr.msc` $\to$ `Groups` $\to$ **Remote Desktop Users**.
 - **Action**: Remove unauthorized users. Ensure only authorized RDP accounts specified in the README are members.
 
-### 3. Remote Desktop Group Policy Hardening
+### 4. Remote Desktop Group Policy Hardening
 Navigate to: `gpedit.msc` $\to$ `Computer Configuration` $\to$ `Administrative Templates` $\to$ `Windows Components` $\to$ `Remote Desktop Services` $\to$ `Remote Desktop Session Host`:
 - Under **Security**:
   - **Require secure RPC communication**: **Enabled**.
@@ -1030,23 +1038,23 @@ Navigate to: `gpedit.msc` $\to$ `Computer Configuration` $\to$ `Administrative T
   - **Set time limit for active but idle Remote Desktop Services sessions**: **30 minutes**.
   - **Set time limit for disconnected sessions**: **1 minute** (or 15 minutes).
 
-### 4. RDP Windows Services Configuration
+### 5. RDP Windows Services Configuration
 - Services Console (`services.msc`):
   - `Remote Desktop Services` (`TermService`): If RDP is needed $\to$ **Automatic**; If RDP is prohibited $\to$ **Disabled**.
   - `Remote Desktop Services UserMode Port Redirector`: Disable if not needed.
   - `Remote Desktop Configuration`: Disable if not needed.
 
-### 5. RDP Firewall Rule
+### 6. RDP Firewall Rule
 - If RDP is prohibited: Block inbound TCP port **3389** in Windows Defender Firewall with Advanced Security.
 
-### 6. Enable Restricted Administration Mode for RDP
+### 7. Enable Restricted Administration Mode for RDP
 - **Path (Group Policy GUI)**:
   - `gpedit.msc` $\to$ `Computer Configuration` $\to$ `Administrative Templates` $\to$ `System` $\to$ `Credentials Delegation`.
   - Double-click policy: **"Restrict delegation of credentials to remote servers"**.
   - Select **Enabled** $\to$ Select **"Require Restricted Admin"** $\to$ Click OK.
 - **Security Justification**: Prevents reusable credentials (pass-the-hash or plaintext passwords) from being stored in memory on the target remote server during RDP sessions.
 
-### 7. Configure Custom RDP Port via Registry (When Required)
+### 8. Configure Custom RDP Port via Registry (When Required)
 - **Path**: `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp`
 - **Value Name**: `PortNumber` (REG_DWORD) $\to$ Value: Custom decimal port (e.g., `3390`). *(Note: Windows provides no GUI to rebind the Terminal Server port)*.
 - **Firewall Rule via PowerShell (Admin)**:
@@ -1054,7 +1062,7 @@ Navigate to: `gpedit.msc` $\to$ `Computer Configuration` $\to$ `Administrative T
   New-NetFirewallRule -DisplayName "RDP-Custom-Port" -Direction Inbound -Protocol TCP -LocalPort 3390 -Action Allow
   ```
 
-### 8. Restrict Drive and Device Redirection over RDP
+### 9. Restrict Drive and Device Redirection over RDP
 - **Path (Group Policy GUI)**:
   - `gpedit.msc` $\to$ `Computer Configuration` $\to$ `Administrative Templates` $\to$ `Windows Components` $\to$ `Remote Desktop Services` $\to$ `Remote Desktop Session Host` $\to$ `Device and Resource Redirection`.
   - Enable the following policies:
@@ -1065,7 +1073,7 @@ Navigate to: `gpedit.msc` $\to$ `Computer Configuration` $\to$ `Administrative T
 
 ---
 
-## Web Browsers (Chrome, Firefox, Internet Explorer, Edge)
+## 2.4 Web Browsers (Chrome, Firefox, Internet Explorer, Edge)
 
 ### 1. Google Chrome
 - **Set as Default**: Ensure Chrome is set as default system web browser when dictated by organizational policy.
@@ -1120,7 +1128,7 @@ Navigate to: `gpedit.msc` $\to$ `Computer Configuration` $\to$ `Administrative T
 
 ---
 
-## Web Servers (IIS, Apache, Abyss Web Server)
+## 2.5 Web Servers (IIS, Apache, Abyss Web Server)
 
 ### 1. Internet Information Services (IIS Manager)
 Access via: `Win + R` $\to$ `inetmgr` $\to$ Enter
@@ -1206,7 +1214,7 @@ Access via: `Win + R` $\to$ `inetmgr` $\to$ Enter
 
 ---
 
-## Database Servers (Microsoft SQL Server & MariaDB / MySQL)
+## 2.6 Database Servers (Microsoft SQL Server & MariaDB / MySQL)
 
 ### 1. Microsoft SQL Server
 - **SQL Server Configuration Manager**:
@@ -1276,7 +1284,7 @@ Access via: `Win + R` $\to$ `inetmgr` $\to$ Enter
 
 ---
 
-## Remote Administration & Management (WinRM, PowerShell Remoting, Remote Registry)
+## 2.7 Remote Administration & Management (WinRM, PowerShell Remoting, Remote Registry)
 
 ### 1. Windows Remote Management (WinRM)
 - **README Check**: Determine if WinRM is authorized for temporary management.
@@ -1321,7 +1329,7 @@ Access via: `Win + R` $\to$ `inetmgr` $\to$ Enter
 
 ---
 
-## Email & Messaging Servers (SMTP)
+## 2.8 Email & Messaging Servers (SMTP)
 
 ### 1. General Audit & Hardening
 - **Audit**: Inspect if SMTP is required by the competition scenario.
@@ -1350,7 +1358,7 @@ Access via: `Win + R` $\to$ `inetmgr` $\to$ Enter
 
 ---
 
-## Network Services & Legacy Protocols (FTP, TFTP, Telnet, SNMP, SSDP, UPnP, RIP Listener, Simple TCP/IP)
+## 2.9 Network Services & Legacy Protocols (FTP, TFTP, Telnet, SNMP, SSDP, UPnP, RIP Listener, Simple TCP/IP)
 
 ### 1. Vulnerable Services to Stop and Disable
 Open `services.msc` $\to$ Double-click each service $\to$ Click **Stop** $\to$ Set **Startup type** to **Disabled**:
@@ -1412,7 +1420,7 @@ Open `services.msc` $\to$ Double-click each service $\to$ Click **Stop** $\to$ S
 
 ---
 
-## Network Stack & Name Resolution (IPv6, NetBIOS over TCP/IP, LLMNR, DNS Client, SYN Flood Protection)
+## 2.10 Network Stack & Name Resolution (IPv6, NetBIOS over TCP/IP, LLMNR, DNS Client, SYN Flood Protection)
 
 ### 1. Disable IPv6 (When Instructed by README)
 - **Method 1 - Network Adapter GUI**:
@@ -1463,7 +1471,7 @@ Create/modify the following DWORD (32-bit) values:
 
 ---
 
-## Active Directory Domain Services & GPMC (Domain Controllers)
+## 2.11 Active Directory Domain Services & GPMC (Domain Controllers)
 
 *Applicable when the image is a Domain Controller:*
 
@@ -1518,7 +1526,7 @@ Create/modify the following DWORD (32-bit) values:
 
 ---
 
-## Print Spooler & Printer Drivers
+## 2.12 Print Spooler & Printer Drivers
 
 ### 1. Disable Print Spooler (If Not a Dedicated Print Server)
 - **Vulnerability Context**: Mitigates PrintNightmare (CVE-2021-34527, CVE-2021-1675) and remote DLL injection.
@@ -1553,7 +1561,7 @@ Create/modify the following DWORD (32-bit) values:
 
 ---
 
-## Third-Party Software Management & Required Updates
+## 2.13 Third-Party Software Management & Required Updates
 
 Keep business-critical applications installed, verified, and updated to the latest secure releases:
 
@@ -1588,7 +1596,7 @@ Keep business-critical applications installed, verified, and updated to the late
 
 ---
 
-## Unauthorized Software, Hacking Tools & Malware Removal
+## 2.14 Unauthorized Software, Hacking Tools & Malware Removal
 
 ### 1. Software Removal (Control Panel $\to$ Programs and Features)
 Scan installed programs list and **Uninstall** unauthorized utilities:
@@ -1652,7 +1660,7 @@ users.bat
 
 ---
 
-## Critical Policies: Do NOT Do Unless Instructed by README
+## 2.15 Critical Policies: Do NOT Do Unless Instructed by README
 
 > [!CAUTION]
 > In CyberPatriot, certain extreme security baselines can break simulated business functionality, scoring engines, or competition parameters. **Only implement the following items if explicitly directed by the scenario README:**
@@ -1679,11 +1687,11 @@ users.bat
 ---
 ---
 
-# Competition Scenarios, Forensics Solutions & Reference Notes
+# 3. Competition Scenarios, Forensics Solutions & Reference Notes
 
 ---
 
-## General Competition Strategy & Golden Rules
+## 3.1 General Competition Strategy & Golden Rules
 
 1. **Rule 1: Always Read the README First!**
    - Follow with strict guidance. Identify authorized administrators, authorized standard users, required services, permitted software, and forbidden changes.
@@ -1700,7 +1708,7 @@ users.bat
 
 ---
 
-## Competition 1 (25-26 Windows 11) Debrief & Forensics
+## 3.2 Competition 1 (25-26 Windows 11) Debrief & Forensics
 
 ### Key Findings & Actions Taken
 - **Software Requirements**: Keep Notepad++ and update to latest version.
@@ -1732,7 +1740,7 @@ users.bat
 
 ---
 
-## Competition 2 (25-26 Windows 11) Debrief & Forensics
+## 3.3 Competition 2 (25-26 Windows 11) Debrief & Forensics
 
 ### Key Findings & Actions Taken
 - **Software Updates**: Updated `LibreOffice`, `7-Zip`.
@@ -1754,7 +1762,7 @@ users.bat
 
 ---
 
-## Competition 3 Gold (Server 2019) Debrief & Forensics
+## 3.4 Competition 3 Gold (Server 2019) Debrief & Forensics
 
 ### Key Findings & Actions Taken
 - **Software Updates**: Updated `FileZilla`, `Wireshark`, `Google Chrome`, `Notepad++`, `WinRAR`.
@@ -1786,7 +1794,7 @@ users.bat
 
 ---
 
-## Competition 4 Gold Semifinals (Windows 11 / Server 2022) Debrief & Forensics
+## 3.5 Competition 4 Gold Semifinals (Windows 11 / Server 2022) Debrief & Forensics
 
 ### Windows Server 2022 Semifinals Summary
 - **Software Removed**:
@@ -1809,7 +1817,7 @@ users.bat
 
 ---
 
-## Complete Readme / Scenario Reference (Mr. Robot / E-Corp Challenge)
+## 3.6 Complete Readme / Scenario Reference (Mr. Robot / E-Corp Challenge)
 
 ### Background Scenario Text
 > *"It is company policy to use only Windows 11 on this computer. Management has decided that the default web browser for all users on this computer should be the latest stable version of Google Chrome. Other business related software includes Notepad++, 7-Zip, and Wireshark. These should remain installed and kept up-to-date. Please ensure that the below services are kept in the original install location. Due to time restraints, management requests that you do NOT install Windows Updates. However, you should ensure that the computer is configured to automatically install updates.*
@@ -1850,7 +1858,7 @@ users.bat
 
 ---
 
-## CyberPatriot Master Password & Credential Cheatsheet
+## 3.7 CyberPatriot Master Password & Credential Cheatsheet
 
 Use these standardized complex passwords when rotating passwords for authorized users:
 
