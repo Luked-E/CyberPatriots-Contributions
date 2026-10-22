@@ -277,8 +277,6 @@ Navigate to: `Security Settings` $\to$ `Local Policies` $\to$ `Security Options`
 - **Accounts: Administrator account status**: **Disabled** (Ensure you are logged into another authorized administrative account before disabling!).
 - **Accounts: Guest account status**: **Disabled**.
 - **Accounts: Limit local account use of blank passwords to console logon only**: **Enabled**.
-- **Accounts: Rename administrator account**: Rename to non-default name (e.g., `Saxon` or as dictated by competition instructions).
-- **Accounts: Rename guest account**: Rename to non-default name (e.g., `NotSaxon`).
 
 #### Audit
 - **Audit: Shut down system immediately if unable to log security audits**: **Enabled** (or No Change if unstable).

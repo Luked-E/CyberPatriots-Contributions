@@ -116,12 +116,16 @@ function Show-InteractiveMenu {
 
     while ($true) {
         # Keep selected index in view
-        if ($selectedIndex -lt $viewStart) {
-            $viewStart = $selectedIndex
-        } elseif ($selectedIndex -ge ($viewStart + $maxVisible)) {
-            $viewStart = $selectedIndex - $maxVisible + 1
+        if ($selectedIndex -eq 0) {
+            $viewStart = 0
+        } elseif ($selectedIndex -eq $MenuItems.Length - 1 ) {
+            $viewStart = $MenuItems.Length - 1 - $maxVisible
+        } elseif ($selectedIndex -le $viewStart) {
+            $viewStart = $selectedIndex -1
+        } elseif ($selectedIndex -ge $viewEnd) {
+            $viewStart = $selectedIndex - $maxVisible + 2
         }
-        $viewEnd = [Math]::Min($MenuItems.Length - 1, $viewStart + $maxVisible - 1)
+        $viewEnd = [Math]::Min($viewStart + $maxVisible -1, $MenuItems.Length - 1)
 
         Show-Header $Subtitle
         if ($ColumnHeader) {
@@ -130,11 +134,16 @@ function Show-InteractiveMenu {
         }
 
         # Pagination upward indicator
-        if ($viewStart -gt 0) {
-            Write-Host "  ...  [▲ $($viewStart) more items above]" -ForegroundColor DarkCyan
+        if ($selectedIndex -eq 0) {
+            Write-Host "  -->  " -ForegroundColor Yellow -NoNewline
+            Write-Host "$($MenuItems[0])" -ForegroundColor Black -BackgroundColor Yellow
+        } elseif ($viewStart -eq 0) {
+            Write-Host "       $($MenuItems[0])" -ForegroundColor Gray
+        } elseif ($viewStart -gt 0) {
+            Write-Host "  ...  [▲ $($viewStart + 1) more items above]" -ForegroundColor DarkCyan
         }
 
-        for ($i = $viewStart; $i -le $viewEnd; $i++) {
+        for ($i = $viewStart + 1; $i -le $viewEnd -1; $i++) {
             if ($i -eq $selectedIndex) {
                 Write-Host "  -->  " -ForegroundColor Yellow -NoNewline
                 Write-Host "$($MenuItems[$i])" -ForegroundColor Black -BackgroundColor Yellow
@@ -144,8 +153,13 @@ function Show-InteractiveMenu {
         }
 
         # Pagination downward indicator
-        if ($viewEnd -lt ($MenuItems.Length - 1)) {
-            $remaining = ($MenuItems.Length - 1) - $viewEnd
+        if ($selectedIndex -eq ($MenuItems.Length - 1)) {
+            Write-Host "  -->  " -ForegroundColor Yellow -NoNewline
+            Write-Host "$($MenuItems[$MenuItems.Length - 1])" -ForegroundColor Black -BackgroundColor Yellow
+        } elseif ($viewEnd -eq ($MenuItems.Length - 1)) {
+            Write-Host "       $($MenuItems[$MenuItems.Length - 1])" -ForegroundColor Gray
+        } elseif (($MenuItems.Length - 1) - $viewEnd -gt 0) {
+            $remaining = $MenuItems.Length - $viewEnd
             Write-Host "  ...  [▼ $remaining more items below]" -ForegroundColor DarkCyan
         }
 

@@ -200,10 +200,98 @@
           ]
         },
         {
-          "id": "remote_admin_winrm",
+          "id": "web_browsers",
+          "title": "Web Browsers",
+          "description": "Hardens Chrome, Firefox and Edge via policy keys, updates the selected browser, removes all other browsers, and optionally manages Internet Explorer on legacy systems.",
+          "script_path": "Sub_Scripts\\2_4_WebBrowsers.ps1",
+          "options": [
+            {
+              "name": "Browser",
+              "flag": "-Browser",
+              "type": "select",
+              "choices": ["None", "Edge", "Chrome", "Firefox"],
+              "default": "Edge",
+              "description": "Browser to keep and update; all other browsers are removed"
+            },
+            {
+              "name": "InternetExplorerState",
+              "flag": "-InternetExplorerState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "Internet Explorer 11 feature state (Windows 10/Server only; ignored on Windows 11)"
+            }
+          ]
+        },
+        {
+          "id": "web_servers",
+          "title": "Web Servers (IIS, Apache)",
+          "description": "Hardens IIS and Apache: bindings, logging, default content, authentication, request filtering, security headers, permissions and auditing. Optionally keeps either web server running.",
+          "script_path": "Sub_Scripts\\2_5_WebServers.ps1",
+          "options": [
+            {
+              "name": "IISState",
+              "flag": "-IISState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "IIS (W3SVC): Disabled stops and disables it; Enabled keeps it running and hardens it"
+            },
+            {
+              "name": "ApacheState",
+              "flag": "-ApacheState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "Apache (C:\\Apache24): Disabled stops and disables it; Enabled keeps it running and hardens httpd.conf"
+            }
+          ]
+        },
+        {
+          "id": "database_servers",
+          "title": "Database Servers (SQL Server & MariaDB / MySQL)",
+          "description": "Hardens SQL Server (protocols, encryption, auditing, xp_cmdshell, OLE Automation, remote access, Database Mail, sysadmin, guest, sample DBs, NTFS ACLs) and MariaDB/MySQL (test DB, root, my.ini).",
+          "script_path": "Sub_Scripts\\2_6_DatabaseServers.ps1",
+          "options": [
+            { 
+              "name": "NamedPipesState", 
+              "flag": "-NamedPipesState", 
+              "type": "select", 
+              "choices": ["Disabled", "Enabled"], 
+              "default": "Disabled", 
+              "description": "SQL Server Named Pipes protocol" 
+            },
+            { 
+              "name": "SharedMemoryState", 
+              "flag": "-SharedMemoryState", 
+              "type": "select", 
+              "choices": ["Disabled", "Enabled"], 
+              "default": "Disabled", 
+              "description": "SQL Server Shared Memory protocol" 
+            },
+            { 
+              "name": "SqlBrowserState", 
+              "flag": "-SqlBrowserState", 
+              "type": "select", 
+              "choices": ["Disabled", "Enabled"], 
+              "default": "Disabled", 
+              "description": "SQL Server Browser service (UDP 1434)" 
+            },
+            { 
+              "name": "ClrState", 
+              "flag": "-ClrState", 
+              "type": "select", 
+              "choices": ["Disabled", "Enabled"], 
+              "default": "Disabled", 
+              "description": "SQL Server CLR integration" 
+            }
+          ]
+        },
+        {
+          "id": "remote_management",
           "title": "Remote Administration & Management",
-          "description": "Configures Windows Remote Management, PowerShell Remoting, and Remote Registry services.",
-          "script_path": "Sub_Scripts\\Sec_RemoteAdmin.ps1",
+          "description": "Disables WinRM Basic auth and unencrypted traffic, clears WinRM TrustedHosts, and sets WinRM/PowerShell Remoting and Remote Registry state.",
+          "script_path": "Sub_Scripts\\2_7_RemoteManagement.ps1",
           "options": [
             {
               "name": "WinRMState",
@@ -211,7 +299,7 @@
               "type": "select",
               "choices": ["Disabled", "Enabled"],
               "default": "Disabled",
-              "description": "Windows Remote Management (WinRM / PSRemoting) state"
+              "description": "WinRM / PowerShell Remoting state"
             },
             {
               "name": "RemoteRegistryState",
@@ -224,10 +312,10 @@
           ]
         },
         {
-          "id": "email_servers",
+          "id": "smtp_server",
           "title": "Email & Messaging Servers (SMTP)",
-          "description": "Configures SMTP email services.",
-          "script_path": "Sub_Scripts\\Sec_EmailServers.ps1",
+          "description": "Disables SMTP and blocks TCP 25, or hardens SMTP (relay restrictions, no anonymous auth, TLS, W3C logging, VRFY/EXPN off, BadMail relocated) when the scenario requires it.",
+          "script_path": "Sub_Scripts\\2_8_SMTPServers.ps1",
           "options": [
             {
               "name": "SMTPState",
@@ -235,102 +323,148 @@
               "type": "select",
               "choices": ["Disabled", "Enabled"],
               "default": "Disabled",
-              "description": "Simple Mail Transfer Protocol (SMTP) service state"
+              "description": "Whether the scenario requires an SMTP server (check the README)"
             }
           ]
         },
         {
-          "id": "network_services_legacy",
+          "id": "network_services_protocols",
           "title": "Network Services & Legacy Protocols",
-          "description": "Configures legacy and insecure network services. (FTP, TFTP, Telnet, SNMP, SSDP, UPnP, RIP Listener, Simple TCP/IP)",
-          "script_path": "Sub_Scripts\\Sec_LegacyProtocols.ps1",
+          "description": "Disables FTP, Telnet, SNMP Trap, SimpleTCP, UPnP/SSDP, RIP, RPC Locator, ICS, Remote Registry, Computer Browser, RRAS, W3SVC, Xbox, Bluetooth, Maps and RDP port redirector services; keeps vital services running.",
+          "script_path": "Sub_Scripts\\2_9_NetworkServicesProtocols.ps1",
           "options": [
             {
-              "name": "FTPTelnetState",
-              "flag": "-FTPTelnetState",
+              "name": "WebServerState",
+              "flag": "-WebServerState",
               "type": "select",
-              "choices": ["Disabled", "Enabled"],
+              "choices": [
+                "Disabled",
+                "Enabled"
+              ],
               "default": "Disabled",
-              "description": "FTP and Telnet server services state"
+              "description": "World Wide Web Publishing Service (W3SVC) - enable only if this is a required web server"
             },
             {
-              "name": "UPnPSSDPState",
-              "flag": "-UPnPSSDPState",
+              "name": "SnmpTrapState",
+              "flag": "-SnmpTrapState",
               "type": "select",
-              "choices": ["Disabled", "Enabled"],
+              "choices": [
+                "Disabled",
+                "Enabled"
+              ],
               "default": "Disabled",
-              "description": "UPnP Device Host and SSDP Discovery services state"
+              "description": "SNMP Trap service (SNMPTRAP) - enable only if README requires SNMP"
             },
             {
-              "name": "SNMPState",
-              "flag": "-SNMPState",
+              "name": "UpnpState",
+              "flag": "-UpnpState",
               "type": "select",
-              "choices": ["Disabled", "Enabled"],
+              "choices": [
+                "Disabled",
+                "Enabled"
+              ],
               "default": "Disabled",
-              "description": "SNMP Service state"
+              "description": "UPnP Device Host and SSDP Discovery (upnphost, SSDPSRV)"
             },
             {
-              "name": "SimpleTCPIPState",
-              "flag": "-SimpleTCPIPState",
+              "name": "BluetoothState",
+              "flag": "-BluetoothState",
               "type": "select",
-              "choices": ["Disabled", "Enabled"],
+              "choices": [
+                "Disabled",
+                "Enabled"
+              ],
               "default": "Disabled",
-              "description": "Simple TCP/IP Services state"
+              "description": "Bluetooth Support Service (bthserv)"
+            },
+            {
+              "name": "RdpRedirectorState",
+              "flag": "-RdpRedirectorState",
+              "type": "select",
+              "choices": [
+                "Disabled",
+                "Enabled"
+              ],
+              "default": "Disabled",
+              "description": "Remote Desktop Services UserMode Port Redirector (UmRdpService) - enable if RDP device redirection is required"
             }
           ]
         },
         {
-          "id": "network_stack_resolution",
+          "id": "network_resolution",
           "title": "Network Stack & Name Resolution",
-          "description": "Configures network stack resolution protocols and settings. (IPv6, NetBIOS over TCP/IP, LLMNR, DNS Client, SYN Flood Protection)",
-          "script_path": "Sub_Scripts\\Sec_NetworkStack.ps1",
+          "description": "Hardens the TCP/IP stack (SYN flood, ICMP redirects, source routing, router discovery), applies the Microsoft-supported IPv6 hardening (prefer IPv4, disable tunnels), and disables NetBIOS over TCP/IP, LLMNR/mDNS, and the WPAD auto-discovery service.",
+          "script_path": "Sub_Scripts\\2_10_NetworkStackResolution.ps1",
           "options": [
             {
-              "name": "IPv6State",
-              "flag": "-IPv6State",
+              "name": "Ipv6State",
+              "flag": "-Ipv6State",
               "type": "select",
-              "choices": ["Disabled", "Enabled"],
-              "default": "Disabled",
-              "description": "IPv6 protocol state"
+              "choices": ["BasicDisabled", "Enabled", "GloballyDisabled"],
+              "default": "BasicDisabled",
+              "description": "BasicDisabled: keep IPv6 on, prefer IPv4, disable tunnels (MS-supported) | Enabled: Windows default | GloballyDisabled: unbind IPv6 + DisabledComponents=0xFF (unsupported)"
             },
             {
-              "name": "LLMNRState",
-              "flag": "-LLMNRState",
+              "name": "NetBiosState",
+              "flag": "-NetBiosState",
               "type": "select",
               "choices": ["Disabled", "Enabled"],
               "default": "Disabled",
-              "description": "Link-Local Multicast Name Resolution (LLMNR) state"
+              "description": "NetBIOS over TCP/IP on adapters and the TCP/IP NetBIOS Helper service (lmhosts)"
             },
             {
-              "name": "NetBIOSState",
-              "flag": "-NetBIOSState",
+              "name": "MulticastNameResolutionState",
+              "flag": "-MulticastNameResolutionState",
               "type": "select",
               "choices": ["Disabled", "Enabled"],
               "default": "Disabled",
-              "description": "NetBIOS over TCP/IP state"
+              "description": "LLMNR and mDNS multicast name resolution"
+            },
+            {
+              "name": "WpadServiceState",
+              "flag": "-WpadServiceState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "WinHTTP Web Proxy Auto-Discovery Service (WinHttpAutoProxySvc)"
             }
           ]
         },
         {
-          "id": "ad_domain_services",
+          "id": "adds_gpmc_config",
           "title": "Active Directory Domain Services & GPMC",
-          "description": "Hardens Domain Controller security baselines, Kerberos policies, and audits privileged groups.",
-          "script_path": "Sub_Scripts\\Sec_ActiveDirectory.ps1",
-          "options": []
-        },
-        {
-          "id": "print_spooler",
-          "title": "Print Spooler & Printer Drivers",
-          "description": "Configures Print Spooler service state to remediate remote print vulnerabilities (e.g. PrintNightmare).",
-          "script_path": "Sub_Scripts\\Sec_PrintSpooler.ps1",
+          "description": "Domain Controllers only: enforces domain password/lockout policy and DC auditing, requires Kerberos preauthentication, hardens SPN accounts, resets krbtgt twice, and optionally enables the AD Recycle Bin.",
+          "script_path": "Sub_Scripts\\2_11_DomainServices.ps1",
           "options": [
             {
-              "name": "PrintSpoolerState",
-              "flag": "-PrintSpoolerState",
+              "name": "EnableRecycleBin",
+              "flag": "-EnableRecycleBin",
+              "type": "switch",
+              "default": true,
+              "description": "Enable the AD Recycle Bin (irreversible once enabled)"
+            }
+          ]
+        },
+        {
+          "id": "printer_spooler_drivers",
+          "title": "Print Spooler & Printer Drivers",
+          "description": "Blocks PrintNightmare vectors, restricts printer driver and Point and Print installs to admins, and disables the Print Spooler service by default.",
+          "script_path": "Sub_Scripts\\2_12_PrinterSpooler.ps1",
+          "options": [
+            {
+              "name": "SpoolerState",
+              "flag": "-SpoolerState",
               "type": "select",
               "choices": ["Disabled", "Enabled"],
               "default": "Disabled",
-              "description": "Print Spooler service state"
+              "description": "Print Spooler service state (Enabled only if printing is required)"
+            },
+            {
+              "name": "AllowRemotePrinting",
+              "flag": "-AllowRemotePrinting",
+              "type": "switch",
+              "default": false,
+              "description": "Accept inbound remote print connections (only for a dedicated print server)"
             }
           ]
         }

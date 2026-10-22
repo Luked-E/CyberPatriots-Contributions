@@ -46,44 +46,6 @@ This staging document catalogs researched and validated security configurations,
 
 ## 1.1 Settings App
 
-### Improvement 1.1.1: Disable Delivery Optimization Peer-to-Peer Update Sharing
-- **Description**: Delivery Optimization turns Windows machines into peer-to-peer (P2P) nodes that upload update chunks to other machines over the local network or the Internet. In competition environments, this can saturate the connection and is frequently scored as an unhardened update distribution setting.
-- **Primary Method (Settings GUI)**:
-  1. Press `Win + I` to open **Settings**.
-  2. On **Windows 10**: Navigate to `Update & Security` $\to$ `Delivery Optimization`.
-  3. On **Windows 11**: Navigate to `Windows Update` $\to$ `Advanced options` $\to$ `Delivery Optimization`.
-  4. Toggle **"Allow downloads from other PCs"** to **Off**.
-  5. *(Optional alternate)*: If the README specifically instructs local intranet update sharing, select the radio button **"Devices on my local network"** instead of "Devices on the internet and my local network".
-- **Alternative Method (Group Policy GUI)**:
-  1. Press `Win + R` $\to$ Type `gpedit.msc` $\to$ Press Enter.
-  2. Navigate to `Computer Configuration` $\to$ `Administrative Templates` $\to$ `Windows Components` $\to$ `Delivery Optimization`.
-  3. Double-click **Download Mode** $\to$ Select **Enabled** $\to$ Choose **Simple (99)** or **Bypass (100)** from the dropdown to completely disable P2P peering.
-  4. Click **Apply** $\to$ Click **OK**.
-- **Verification / Audit**:
-  - In Settings, verify the toggle displays **Off**.
-  - In Group Policy, verify the policy state displays **Enabled (Simple/Bypass)**.
-- **Caveats**: Ensure the `Delivery Optimization` service (`DoSvc`) remains on Automatic or Manual so local updates continue downloading directly from Microsoft over standard HTTPS.
-
----
-
-### Improvement 1.1.2: Turn Off Developer Mode
-- **Description**: Enabling Developer Mode allows installing and debugging unverified, self-signed Universal Windows Platform (UWP) apps, modifies firewall rules to open diagnostic ports, and enables the Device Portal and an SSH server listener.
-- **Primary Method (Settings GUI)**:
-  1. Press `Win + I` to open **Settings**.
-  2. On **Windows 10**: Navigate to `Update & Security` $\to$ `For developers`.
-  3. On **Windows 11**: Navigate to `System` (or `Privacy & security`) $\to$ `For developers`.
-  4. Locate the **Developer Mode** toggle switch and turn it **Off**.
-  5. If prompted with *"Turn on developer mode?"* or warning dialogs, ensure it is set to **Don't allow** or disabled.
-- **Alternative Method (Group Policy GUI)**:
-  1. Open `gpedit.msc` $\to$ `Computer Configuration` $\to$ `Administrative Templates` $\to$ `Windows Components` $\to$ `App Package Deployment`.
-  2. Locate policy: **"Allows development of Windows Store applications and installing them from an integrated development environment (IDE)"**.
-  3. Double-click $\to$ Select **Disabled** $\to$ Click **Apply** $\to$ Click **OK**.
-- **Verification / Audit**:
-  - In Settings, confirm the toggle is **Off**.
-- **Caveats**: If Developer Mode was previously active, verify in `services.msc` that `SSH Server Broker` and `SSH Server Proxy` services are not running.
-
----
-
 ### Improvement 1.1.3: Disable Lock Screen Notification Previews
 - **Description**: By default, Windows displays notification banners, calendar events, incoming VoIP previews, and messages on the lock screen before credentials are submitted. Attackers can view sensitive verification codes and user activity without authenticating.
 - **Primary Method (Settings GUI)**:

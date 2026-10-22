@@ -1,14 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $false)]
-    [string]$WindowsVersion = "Windows 11",
-
-    # Not exposed in the manifest (the TUI has no free-text option type); override from the CLI if needed.
-    [Parameter(Mandatory = $false)]
-    [string]$AdminNewName = "Saxon",
-
-    [Parameter(Mandatory = $false)]
-    [string]$GuestNewName = "NotSaxon"
+    [string]$WindowsVersion = "Windows 11"
 )
 
 $ErrorActionPreference = 'Stop'
@@ -116,8 +109,6 @@ $AccountPolicy = [ordered]@{
     LockoutDuration        = 30
     ResetLockoutCount      = 30
     EnableGuestAccount     = 0
-    NewAdministratorName   = "`"$AdminNewName`""
-    NewGuestName           = "`"$GuestNewName`""
 }
 if ($HasOtherAdmin) { $AccountPolicy['EnableAdminAccount'] = 0 }
 
