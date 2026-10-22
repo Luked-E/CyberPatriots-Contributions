@@ -119,7 +119,7 @@ function Show-InteractiveMenu {
         if ($selectedIndex -eq 0) {
             $viewStart = 0
         } elseif ($selectedIndex -eq $MenuItems.Length - 1 ) {
-            $viewStart = $MenuItems.Length - $maxVisible
+            $viewStart = $MenuItems.Length - $(if($maxVisible -ge $MenuItems.Length) {$MenuItems.Length} else {$maxVisible})
         } elseif ($selectedIndex -le $viewStart) {
             $viewStart = $selectedIndex -1
         } elseif ($selectedIndex -ge $viewEnd) {
