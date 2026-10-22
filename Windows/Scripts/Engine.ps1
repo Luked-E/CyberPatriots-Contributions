@@ -119,7 +119,7 @@ function Show-InteractiveMenu {
         if ($selectedIndex -eq 0) {
             $viewStart = 0
         } elseif ($selectedIndex -eq $MenuItems.Length - 1 ) {
-            $viewStart = $MenuItems.Length - 1 - $maxVisible
+            $viewStart = $MenuItems.Length - $maxVisible
         } elseif ($selectedIndex -le $viewStart) {
             $viewStart = $selectedIndex -1
         } elseif ($selectedIndex -ge $viewEnd) {
@@ -163,7 +163,8 @@ function Show-InteractiveMenu {
             Write-Host "  ...  [▼ $remaining more items below]" -ForegroundColor DarkCyan
         }
 
-        Write-Host ""
+        Write-Host "$maxVisible - $selectedIndex, $viewStart - $viewEnd, "
+        #Write-Host ""
         Write-Host "$HelpText" -ForegroundColor DarkCyan
 
         $key = [Console]::ReadKey($true)
