@@ -28,6 +28,7 @@ param(
 $ScriptName = Split-Path -Leaf $PSCommandPath
 $ErrorLog   = Join-Path (Get-Location).Path "errors.log"
 $IsServer   = $WindowsVersion -like "*Server*"
+$ErrorActionPreference = 'Stop'
 
 Write-Host "[*] Applying Windows features hardening for $WindowsVersion..." -ForegroundColor Cyan
 

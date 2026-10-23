@@ -14,6 +14,7 @@ param(
 
 $ScriptName = Split-Path -Leaf $PSCommandPath
 $ErrorLog   = Join-Path (Get-Location).Path "errors.log"
+$ErrorActionPreference = 'Stop'
 
 Write-Host "[*] Applying browser hardening for $WindowsVersion (Browser: $Browser, IE State: $InternetExplorerState)..." -ForegroundColor Cyan
 
@@ -21,7 +22,6 @@ Write-Host "[*] Applying browser hardening for $WindowsVersion (Browser: $Browse
 function Invoke-Step {
     param([string]$Command, [scriptblock]$Action)
     try {
-        $ErrorActionPreference = 'Stop'
         & $Action
     }
     catch {
@@ -54,9 +54,11 @@ if ($Browser -ne "None") {
     $id = $browserCatalog[$Browser].Id
     Invoke-Step "winget upgrade --id $id" {
         if (-not (Get-Command winget -ErrorAction SilentlyContinue)) { throw "winget not found" }
-        winget upgrade --id $id --exact --silent --accept-source-agreements --accept-package-agreements | Out-Null
-        # 0 = upgraded; -1978335189 = already current; -1978335212 = not installed
-        if ($LASTEXITCODE -notin 0, -1978335189, -1978335212) { throw "winget exit code $LASTEXITCODE" }
+        try {
+            winget upgrade --id $id --exact --source winget --silent --accept-source-agreements --accept-package-agreements | Out-Null
+        } catch {
+            Write-Host "[!] Winget online source query failed or blocked. Skipping application update." -ForegroundColor Yellow
+        }
     }
 }
 

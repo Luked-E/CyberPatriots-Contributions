@@ -15,6 +15,7 @@ param(
 
 $ScriptName = Split-Path $PSCommandPath -Leaf
 $ErrorLog   = Join-Path (Get-Location) "errors.log"
+$ErrorActionPreference = 'Stop'
 
 # Runs an action; on failure appends script name, command and error to errors.log.
 function Invoke-Safe {

@@ -299,38 +299,59 @@ function Invoke-SubScript {
     $resolvedPath = Join-Path $ScriptDir $scriptObj.ScriptPath
     $activeOpts = if ($customOpts) { $customOpts } else { $scriptObj.OptValues }
 
-    # Build argument string
-    $argList = @("-WindowsVersion", "`"$GlobalOS`"")
+    # Build argument hashtable for proper parameter binding (Splatting)
+    $argHash = @{
+        WindowsVersion = $GlobalOS
+    }
+    
     if ($scriptObj.OptionDefs) {
         foreach ($od in $scriptObj.OptionDefs) {
             $val = $activeOpts[$od.name]
             if ($od.type -eq "switch") {
                 if ($val -eq $true) {
-                    $argList += $od.flag
+                    # Strip leading hyphen from flag name if present (e.g. "-ScanProhibitedMedia" -> "ScanProhibitedMedia")
+                    $paramName = $od.flag.TrimStart('-')
+                    $argHash[$paramName] = $true
                 }
             } elseif ($od.type -eq "select") {
-                $argList += $od.flag
-                $argList += "`"$val`""
+                $paramName = $od.flag.TrimStart('-')
+                $argHash[$paramName] = $val
             }
         }
     }
 
+    # For display logging purposes
+    $argListDisplay = $argHash.GetEnumerator() | ForEach-Object { "-$($_.Key) `"$($_.Value)`"" }
+
     Write-Host "`n  Script Path : $resolvedPath" -ForegroundColor Cyan
-    Write-Host "  Arguments   : $($argList -join ' ')" -ForegroundColor Cyan
+    Write-Host "  Arguments   : $($argListDisplay -join ' ')" -ForegroundColor Cyan
     Write-Host "----------------------------------------------------------------------------------------------------" -ForegroundColor DarkGray
 
     if (-not (Test-Path $resolvedPath)) {
         Write-Host "`n  [!] Subscript file not yet created: $resolvedPath" -ForegroundColor Yellow
         Write-Host "      (Subscripts will be implemented individually according to the master checklist.)" -ForegroundColor Gray
         Write-Host "`n  Command that will be invoked:" -ForegroundColor White
-        Write-Host "  powershell.exe -ExecutionPolicy Bypass -File `"$resolvedPath`" $($argList -join ' ')" -ForegroundColor Green
+        Write-Host "  powershell.exe -ExecutionPolicy Bypass -File `"$resolvedPath`" $($argListDisplay -join ' ')" -ForegroundColor Green
     } else {
         Write-Host "`n  Executing script in current elevated context...`n" -ForegroundColor Green
+        $commandAttempted = "& `"$resolvedPath`" $($argListDisplay -join ' ')"
         try {
-            & $resolvedPath @argList
-            Write-Host "`n  [+] Execution completed with exit code: $LASTEXITCODE" -ForegroundColor Green
+            & $resolvedPath @argHash
+            if ($LASTEXITCODE -ne $null -and $LASTEXITCODE -ne 0) {
+                Write-Host "`n  [!] Execution completed with non-zero exit code: $LASTEXITCODE" -ForegroundColor Red
+                $logPath = Join-Path (Get-Location).Path "errors.log"
+                $timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+                $logMessage = "[$timestamp] Script: $($scriptObj.ScriptPath)`nCommand: $commandAttempted`nError: Script exited with non-zero exit code $LASTEXITCODE`n" + ("-" * 80)
+                Add-Content -Path $logPath -Value $logMessage
+            } else {
+                Write-Host "`n  [+] Execution completed with exit code: $LASTEXITCODE" -ForegroundColor Green
+            }
         } catch {
             Write-Host "`n  [!] Error executing script: $_" -ForegroundColor Red
+            $logPath = Join-Path (Get-Location).Path "errors.log"
+            $timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+            $logMessage = "[$timestamp] Script: $($scriptObj.ScriptPath)`nCommand: $commandAttempted`nError: $($_.Exception.Message)`n" + ("-" * 80)
+            Add-Content -Path $logPath -Value $logMessage
         }
     }
 

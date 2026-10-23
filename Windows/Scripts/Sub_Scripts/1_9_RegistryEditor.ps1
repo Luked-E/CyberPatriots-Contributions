@@ -6,6 +6,7 @@ param(
 
 $ScriptName = $MyInvocation.MyCommand.Name
 $ErrorLog   = Join-Path (Get-Location).Path "errors.log"
+$ErrorActionPreference = 'Stop'
 
 Write-Host "[*] Applying registry hardening for $WindowsVersion..." -ForegroundColor Cyan
 

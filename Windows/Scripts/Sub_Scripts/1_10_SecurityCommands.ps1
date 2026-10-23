@@ -7,13 +7,13 @@ param(
 $ScriptName = Split-Path $PSCommandPath -Leaf
 $ErrorLog   = Join-Path (Get-Location).Path "errors.log"
 $script:Failures = 0
+$ErrorActionPreference = 'Stop'
 
 # Runs one step; any terminating error or non-zero native exit code is logged
 # to errors.log as: timestamp | script file | command attempted | error.
 function Invoke-Step {
     param([string]$Command, [scriptblock]$Action)
     try {
-        $ErrorActionPreference = 'Stop'
         $global:LASTEXITCODE = 0
         & $Action | Out-Host
         if ($LASTEXITCODE -ne 0) { throw "Exit code $LASTEXITCODE" }

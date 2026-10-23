@@ -47,12 +47,21 @@ function Set-Dword {
 function Set-ServiceState {
     param([string]$Name, [string]$State)
     Invoke-Step "Set service $Name to $State" {
+        $svc = Get-Service -Name $Name -ErrorAction SilentlyContinue
+        if (-not $svc) {
+            Write-Host "[-] Service '$Name' not found; skipping." -ForegroundColor DarkGray
+            return
+        }
         if ($State -eq "Disabled") {
-            Stop-Service -Name $Name -Force
-            Set-Service -Name $Name -StartupType Disabled
+            try {
+                if ($svc.Status -ne 'Stopped') { Stop-Service -Name $Name -Force -ErrorAction Stop }
+            } catch {
+                Write-Host "[!] Note: Could not stop service $Name (Protected/Active)" -ForegroundColor Yellow
+            }
+            Set-Service -Name $Name -StartupType Disabled -ErrorAction SilentlyContinue
         } else {
-            Set-Service -Name $Name -StartupType Manual
-            Start-Service -Name $Name
+            Set-Service -Name $Name -StartupType Manual -ErrorAction SilentlyContinue
+            if ($svc.Status -ne 'Running') { Start-Service -Name $Name -ErrorAction SilentlyContinue }
         }
     }
 }

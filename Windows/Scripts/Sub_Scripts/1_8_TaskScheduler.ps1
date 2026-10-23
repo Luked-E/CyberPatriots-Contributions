@@ -6,12 +6,12 @@ param(
 
 $ScriptName = $MyInvocation.MyCommand.Name
 $ErrorLog   = Join-Path (Get-Location).Path "errors.log"
+$ErrorActionPreference = 'Stop'
 
 # Runs an action; on failure logs file name + command attempted to errors.log in the current directory.
 function Invoke-Safe {
     param([string]$Command, [scriptblock]$Action)
     try {
-        $ErrorActionPreference = "Stop"
         & $Action
     } catch {
         Add-Content -Path $ErrorLog -Value "[$(Get-Date -Format s)] File: $ScriptName | Command: $Command | Error: $($_.Exception.Message)"

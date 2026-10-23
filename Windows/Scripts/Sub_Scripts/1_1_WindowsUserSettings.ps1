@@ -8,6 +8,7 @@ param(
     [string]$DeliveryOptimizationMode = "Disabled"
 )
 
+$ErrorActionPreference = 'Stop'
 $ScriptName = Split-Path $PSCommandPath -Leaf
 $ErrorLog   = Join-Path (Get-Location).Path "errors.log"
 $script:Failures = 0
@@ -18,7 +19,6 @@ function Invoke-Step {
         [scriptblock]$Action
     )
     try {
-        $ErrorActionPreference = 'Stop'
         $global:LASTEXITCODE = 0
         & $Action | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "Exit code $LASTEXITCODE" }

@@ -10,6 +10,7 @@ $ScriptName = Split-Path -Leaf $PSCommandPath
 $LogDir     = if ((Split-Path -Leaf $PSScriptRoot) -eq "Sub_Scripts") { Split-Path -Parent $PSScriptRoot } else { $PSScriptRoot }
 $ErrorLogPath = Join-Path $LogDir "errors.log"
 $script:Failures = 0
+$ErrorActionPreference = 'Stop'
 
 function Write-ErrorLog {
     param([Parameter(Mandatory)][string]$Message)

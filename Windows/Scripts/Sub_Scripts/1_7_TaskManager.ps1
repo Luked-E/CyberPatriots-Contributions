@@ -88,9 +88,11 @@ Get-CimInstance -ClassName Win32_Service | Where-Object { $_.PathName -match $Ro
 }
 
 # --- 5. Users: sign off disconnected (ghost) sessions ---
-quser 2>$null | Select-String '^\s*>?\S+\s+(\d+)\s+Disc' | ForEach-Object {
-    $sid = $_.Matches[0].Groups[1].Value
-    Invoke-Step "logoff $sid" { logoff $sid }
+if (Get-Command quser -ErrorAction SilentlyContinue) {
+    quser 2>$null | Select-String '^\s*>?\S+\s+(\d+)\s+Disc' | ForEach-Object {
+        $sid = $_.Matches[0].Groups[1].Value
+        Invoke-Step "logoff $sid" { logoff $sid }
+    }
+} else {
+    Write-Host "[*] 'quser' command not available on this Windows edition; skipping ghost session check." -ForegroundColor DarkGray
 }
-
-Write-Host "[+] Task Manager hardening applied successfully." -ForegroundColor Green

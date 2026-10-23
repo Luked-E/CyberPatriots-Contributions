@@ -10,6 +10,7 @@ param(
 
 $ScriptName = $MyInvocation.MyCommand.Name
 $ErrorLog   = Join-Path (Get-Location).Path "errors.log"
+$ErrorActionPreference = 'Stop'
 $IsServer   = $WindowsVersion -like "*Server*"
 $FwRuleName = "CP - Block SMTP TCP 25"
 

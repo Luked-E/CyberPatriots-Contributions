@@ -8,6 +8,7 @@ Write-Host "[*] Applying file system, drive security & prohibited media hardenin
 
 $ScriptName = $MyInvocation.MyCommand.Name
 $ErrorLog   = Join-Path (Get-Location).Path "errors.log"
+$ErrorActionPreference = 'Stop'
 $Drive      = "$env:SystemDrive\"
 
 function Write-ErrorLog {
@@ -19,7 +20,6 @@ function Write-ErrorLog {
 # Runs an action; logs any terminating error or non-zero native exit code.
 function Invoke-Step {
     param([string]$Command, [scriptblock]$Action)
-    $ErrorActionPreference = "Stop"
     try {
         $global:LASTEXITCODE = 0
         & $Action
@@ -44,7 +44,13 @@ function Get-FilesLogged {
 
 # 1. Root drive & System32 permissions: remove Everyone (S-1-1-0) grants, then show ACLs for review
 foreach ($path in $Drive, "$env:SystemRoot\System32") {
-    Invoke-Step "icacls `"$path`" /remove:g *S-1-1-0" { icacls $path /remove:g "*S-1-1-0" }
+    Invoke-Step "icacls `"$path`" /remove:g *S-1-1-0" {
+        try {
+            icacls $path /remove:g "*S-1-1-0" 2>&1 | Out-Null
+        } catch {
+            Write-Host "[!] Note: Could not fully strip Everyone from $path (Protected System ACL)" -ForegroundColor Yellow
+        }
+    }
     Invoke-Step "icacls `"$path`"" { icacls $path }
 }
 

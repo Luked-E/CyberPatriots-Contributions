@@ -13,6 +13,7 @@ param(
 
 $ScriptName = $MyInvocation.MyCommand.Name
 $ErrorLog   = Join-Path (Get-Location).Path "errors.log"
+$ErrorActionPreference = 'Stop'
 
 Write-Host "[*] Configuring network services & legacy protocols for $WindowsVersion..." -ForegroundColor Cyan
 
@@ -32,22 +33,29 @@ function Set-ServiceState {
     param([string]$Name, [ValidateSet("Disabled", "Enabled")][string]$State)
 
     $svc = Get-Service -Name $Name -ErrorAction SilentlyContinue
-    if (-not $svc) { Write-Host "[-] $Name not installed, skipping." -ForegroundColor DarkGray; return }
+    if (-not $svc) { 
+        Write-Host "[-] $Name not installed, skipping." -ForegroundColor DarkGray
+        return 
+    }
 
     $startup = if ($State -eq "Disabled") { "Disabled" } else { "Automatic" }
 
-    if ($svc.StartType -ne $startup) {
-        Invoke-Logged "Set-Service -Name $Name -StartupType $startup" {
-            Set-Service -Name $Name -StartupType $startup -ErrorAction Stop
+    try {
+        if ($svc.StartType -ne $startup) {
+            Invoke-Logged "Set-Service -Name $Name -StartupType $startup" {
+                Set-Service -Name $Name -StartupType $startup -ErrorAction Stop
+            }
         }
+        if ($State -eq "Disabled" -and $svc.Status -ne "Stopped") {
+            Invoke-Logged "Stop-Service -Name $Name -Force" { Stop-Service -Name $Name -Force -ErrorAction Stop }
+        }
+        elseif ($State -eq "Enabled" -and $svc.Status -ne "Running") {
+            Invoke-Logged "Start-Service -Name $Name" { Start-Service -Name $Name -ErrorAction Stop }
+        }
+        Write-Host "[+] $Name -> $State" -ForegroundColor Green
+    } catch {
+        Write-Host "[!] Note: Could not modify service $Name (Protected or Restricted)" -ForegroundColor Yellow
     }
-    if ($State -eq "Disabled" -and $svc.Status -ne "Stopped") {
-        Invoke-Logged "Stop-Service -Name $Name -Force" { Stop-Service -Name $Name -Force -ErrorAction Stop }
-    }
-    elseif ($State -eq "Enabled" -and $svc.Status -ne "Running") {
-        Invoke-Logged "Start-Service -Name $Name" { Start-Service -Name $Name -ErrorAction Stop }
-    }
-    Write-Host "[+] $Name -> $State" -ForegroundColor Green
 }
 
 # Always disabled (insecure legacy services, gaming, maps)

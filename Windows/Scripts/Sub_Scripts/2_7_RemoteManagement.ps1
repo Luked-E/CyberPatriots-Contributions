@@ -14,12 +14,12 @@ param(
 
 $ScriptName = Split-Path -Leaf $PSCommandPath
 $ErrorLog   = Join-Path (Get-Location).Path "errors.log"
+$ErrorActionPreference = 'Stop'
 
 # Runs one step; any error is appended to errors.log with the file name and command attempted.
 function Invoke-Step {
     param([string]$Description, [scriptblock]$Action)
     try {
-        $ErrorActionPreference = "Stop"
         & $Action
     } catch {
         Add-Content -Path $ErrorLog -Value ("[{0}] File: {1} | Command: {2} | Error: {3}" -f (Get-Date -Format s), $ScriptName, $Description, $_.Exception.Message)

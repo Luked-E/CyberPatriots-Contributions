@@ -34,9 +34,13 @@ foreach ($u in Get-LocalUser | Where-Object { $_.SID.Value -notmatch '-(503|504)
 # 4. Report (read-only) members of sensitive groups, and 5. audit all local users.
 foreach ($grp in "Administrators", "Backup Operators", "Remote Management Users", "Distributed COM Users",
                  "Event Log Readers", "Performance Log Users", "Performance Monitor Users", "Cryptographic Operators") {
-    Step "List members of $grp" {
-        Write-Host "=== Members of $grp ===" -ForegroundColor Cyan
-        Get-LocalGroupMember -Group $grp | Select-Object Name, PrincipalSource | Format-Table -AutoSize | Out-Host
+    if (Get-LocalGroup -Name $grp -ErrorAction SilentlyContinue) {
+        Step "List members of $grp" {
+            Write-Host "=== Members of $grp ===" -ForegroundColor Cyan
+            Get-LocalGroupMember -Group $grp | Select-Object Name, PrincipalSource | Format-Table -AutoSize | Out-Host
+        }
+    } else {
+        Write-Host "[*] Skipping group '$grp' (does not exist on this system)." -ForegroundColor DarkGray
     }
 }
 
