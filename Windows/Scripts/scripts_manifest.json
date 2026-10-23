@@ -95,7 +95,16 @@
           "title": "File System, Drive Security & Prohibited Media Files",
           "description": "Scans drives for prohibited media files (mp3, mp4, avi, wav, etc.), audits sensitive file NTFS permissions, and checks hidden directories.",
           "script_path": "Sub_Scripts\\1_11_FileSystemSecurity.ps1",
-          "options": []
+          "options": [
+            {
+              "name": "SystemRepair",
+              "flag": "-SystemRepair",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "System file integrity repair"
+            }
+          ]
         }
       ]
     },
@@ -431,7 +440,7 @@
           ]
         },
         {
-          "id": "adds_gpmc_config",
+          "id": "domain_services_gpmc",
           "title": "Active Directory Domain Services & GPMC",
           "description": "Domain Controllers only: enforces domain password/lockout policy and DC auditing, requires Kerberos preauthentication, hardens SPN accounts, resets krbtgt twice, and optionally enables the AD Recycle Bin.",
           "script_path": "Sub_Scripts\\2_11_DomainServices.ps1",

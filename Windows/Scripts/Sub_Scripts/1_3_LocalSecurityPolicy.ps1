@@ -4,24 +4,11 @@ param(
     [string]$WindowsVersion = "Windows 11"
 )
 
-$ErrorActionPreference = 'Stop'
-$ScriptName = Split-Path $PSCommandPath -Leaf
-$ErrorLog   = Join-Path $PWD.Path 'errors.log'
-$Failures   = 0
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
 
-# Runs one step; on any error (including non-zero native exit codes) logs file name + command to errors.log.
-function Invoke-Step {
-    param([scriptblock]$Action, [string]$Command = $Action.ToString().Trim())
-    try {
-        $global:LASTEXITCODE = 0
-        & $Action | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw "Exit code $LASTEXITCODE" }
-    } catch {
-        $script:Failures++
-        Add-Content -Path $ErrorLog -Value "[$(Get-Date -Format s)] $ScriptName | $Command | $($_.Exception.Message)"
-        Write-Host "[!] Failed: $Command" -ForegroundColor Red
-    }
-}
+$ErrorActionPreference = 'Stop'
 
 Write-Host "[*] Applying Local Security Policy hardening for $WindowsVersion..." -ForegroundColor Cyan
 
@@ -68,34 +55,32 @@ $Sys|PromptOnSecureDesktop|DWord|1
 "@ | ConvertFrom-Csv -Delimiter '|'
 
 foreach ($s in $RegistrySettings) {
-    Invoke-Step {
-        if (-not (Test-Path $s.Path)) { New-Item -Path $s.Path -Force | Out-Null }
-        $value = if ($s.Type -eq 'DWord') { [int]$s.Value } else { $s.Value }
-        New-ItemProperty -Path $s.Path -Name $s.Name -PropertyType $s.Type -Value $value -Force
-    } "Set $($s.Path)\$($s.Name) = $($s.Value)"
+    Set-RegValue -Path $s.Path -Name $s.Name -Value $s.Value -Type $s.Type
 }
 
 # ---------------------------------------------------------------------------
 # 2. Audit policy: Success + Failure on every category/subcategory
 #    (covers both the legacy Audit Policy and Advanced Audit Policy sections)
 # ---------------------------------------------------------------------------
-Invoke-Step { auditpol /set '/category:*' /success:enable /failure:enable }
+Invoke-Step -Command "auditpol /set /category:* /success:enable /failure:enable" -Action {
+    auditpol /set '/category:*' /success:enable /failure:enable
+}
 
 # ---------------------------------------------------------------------------
 # 3. Account policies, account status/renames, and User Rights via one secedit import
 # ---------------------------------------------------------------------------
 # Only disable the built-in Administrator if another enabled local admin exists.
 $HasOtherAdmin = $false
-Invoke-Step {
+Invoke-Step -Command "Check for another enabled local administrator" -Action {
     $script:HasOtherAdmin = [bool](
         Get-LocalGroupMember -SID 'S-1-5-32-544' |
             Where-Object { $_.ObjectClass -eq 'User' -and $_.SID.Value -notlike '*-500' } |
             ForEach-Object { Get-LocalUser -SID $_.SID -ErrorAction SilentlyContinue } |
             Where-Object Enabled)
-} "Check for another enabled local administrator"
+}
 
 if (-not $HasOtherAdmin) {
-    Write-Warning "No other enabled local administrator found - leaving the built-in Administrator enabled."
+    Write-WarningLog -message "No other enabled local administrator found - leaving the built-in Administrator enabled."
 }
 
 $AccountPolicy = [ordered]@{
@@ -146,15 +131,12 @@ $inf += $AccountPolicy.GetEnumerator()   | ForEach-Object { "$($_.Key) = $($_.Va
 $inf += '[Privilege Rights]'
 $inf += $PrivilegeRights.GetEnumerator() | ForEach-Object { "$($_.Key) = $($_.Value)" }
 
-Invoke-Step { $inf | Set-Content -Path $InfPath -Encoding Unicode } "Write $InfPath"
-Invoke-Step { secedit /configure /db $DbPath /cfg $InfPath /areas SECURITYPOLICY USER_RIGHTS /quiet } `
-            "secedit /configure /db $DbPath /cfg $InfPath /areas SECURITYPOLICY USER_RIGHTS /quiet"
+Invoke-Step -Command "Write $InfPath" -Action { $inf | Set-Content -Path $InfPath -Encoding Unicode }
+Invoke-Step -Command "secedit /configure /db $DbPath /cfg $InfPath /areas SECURITYPOLICY USER_RIGHTS /quiet" -Action {
+    secedit /configure /db $DbPath /cfg $InfPath /areas SECURITYPOLICY USER_RIGHTS /quiet
+}
 Remove-Item $InfPath, $DbPath -Force -ErrorAction SilentlyContinue
 
-Invoke-Step { gpupdate /force }
+Invoke-Step -Command "gpupdate /force" -Action { gpupdate /force }
 
-if ($Failures -gt 0) {
-    Write-Host "[!] Completed with $Failures error(s). See $ErrorLog" -ForegroundColor Yellow
-} else {
-    Write-Host "[+] Local Security Policy hardening applied successfully." -ForegroundColor Green
-}
+Write-Host "[+] Local Security Policy hardening complete. Check the Logs directory for any errors." -ForegroundColor Green

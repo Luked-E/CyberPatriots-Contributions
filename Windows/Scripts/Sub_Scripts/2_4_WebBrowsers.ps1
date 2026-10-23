@@ -12,35 +12,13 @@ param(
     [string]$InternetExplorerState = "Disabled"
 )
 
-$ScriptName = Split-Path -Leaf $PSCommandPath
-$ErrorLog   = Join-Path (Get-Location).Path "errors.log"
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
+
 $ErrorActionPreference = 'Stop'
 
 Write-Host "[*] Applying browser hardening for $WindowsVersion (Browser: $Browser, IE State: $InternetExplorerState)..." -ForegroundColor Cyan
-
-# Runs an action; on failure appends "file | command | error" to errors.log and continues.
-function Invoke-Step {
-    param([string]$Command, [scriptblock]$Action)
-    try {
-        & $Action
-    }
-    catch {
-        Add-Content -Path $ErrorLog -Value "[$(Get-Date -Format s)] $ScriptName | $Command | $($_.Exception.Message)"
-        Write-Host "[!] Failed: $Command (see errors.log)" -ForegroundColor Red
-    }
-}
-
-# Writes registry values from a table of @{ Path; Name; Value }. Strings -> REG_SZ, numbers -> REG_DWORD.
-function Set-RegistryValues {
-    param([hashtable[]]$Entries)
-    foreach ($e in $Entries) {
-        $type = if ($e.Value -is [string]) { 'String' } else { 'DWord' }
-        Invoke-Step "Set $($e.Path)\$($e.Name) = $($e.Value)" {
-            if (-not (Test-Path $e.Path)) { New-Item -Path $e.Path -Force | Out-Null }
-            New-ItemProperty -Path $e.Path -Name $e.Name -Value $e.Value -PropertyType $type -Force | Out-Null
-        }
-    }
-}
 
 # Browser catalog: winget ID (null = not removable) and Programs and Features display name.
 $browserCatalog = @{
@@ -68,30 +46,28 @@ $edge    = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge'
 $firefox = 'HKLM:\SOFTWARE\Policies\Mozilla\Firefox'
 $ffPrefs = "$firefox\Preferences"
 
-Set-RegistryValues @(
-    # Chrome
-    @{ Path = $chrome; Name = 'AdsSettingForIntrusiveAdsSites'; Value = 2 }   # Block intrusive ads
-    @{ Path = $chrome; Name = 'DefaultPopupsSetting';           Value = 2 }   # Block pop-ups/redirects
-    @{ Path = $chrome; Name = 'SafeBrowsingProtectionLevel';    Value = 2 }   # Enhanced protection
-    @{ Path = $chrome; Name = 'BlockThirdPartyCookies';         Value = 1 }
-    @{ Path = $chrome; Name = 'PasswordManagerEnabled';         Value = 0 }
+# Chrome
+Set-RegValue $chrome 'AdsSettingForIntrusiveAdsSites' 2   # Block intrusive ads
+Set-RegValue $chrome 'DefaultPopupsSetting'           2   # Block pop-ups/redirects
+Set-RegValue $chrome 'SafeBrowsingProtectionLevel'    2   # Enhanced protection
+Set-RegValue $chrome 'BlockThirdPartyCookies'         1
+Set-RegValue $chrome 'PasswordManagerEnabled'         0
 
-    # Edge
-    @{ Path = $edge; Name = 'SmartScreenEnabled';    Value = 1 }
-    @{ Path = $edge; Name = 'SmartScreenPuaEnabled'; Value = 1 }              # Block potentially unwanted apps
-    @{ Path = $edge; Name = 'PasswordManagerEnabled'; Value = 0 }
+# Edge
+Set-RegValue $edge 'SmartScreenEnabled'     1
+Set-RegValue $edge 'SmartScreenPuaEnabled'  1             # Block potentially unwanted apps
+Set-RegValue $edge 'PasswordManagerEnabled' 0
 
-    # Firefox
-    @{ Path = $firefox;                    Name = 'AppAutoUpdate'; Value = 1 }
-    @{ Path = "$firefox\PopupBlocking";    Name = 'Default';       Value = 1 }
-    @{ Path = "$firefox\Permissions\Autoplay"; Name = 'Default';   Value = 'block-audio-video' }
-    @{ Path = $ffPrefs; Name = 'browser.safebrowsing.malware.enabled';                       Value = 1 }
-    @{ Path = $ffPrefs; Name = 'browser.safebrowsing.phishing.enabled';                      Value = 1 }
-    @{ Path = $ffPrefs; Name = 'browser.safebrowsing.downloads.enabled';                     Value = 1 }
-    @{ Path = $ffPrefs; Name = 'browser.safebrowsing.downloads.remote.block_potentially_unwanted'; Value = 1 }
-    @{ Path = $ffPrefs; Name = 'browser.safebrowsing.downloads.remote.block_uncommon';       Value = 1 }
-    @{ Path = $ffPrefs; Name = 'xpinstall.whitelist.required';                               Value = 1 }  # Warn on add-on installs
-)
+# Firefox
+Set-RegValue $firefox 'AppAutoUpdate' 1
+Set-RegValue "$firefox\PopupBlocking" 'Default' 1
+Set-RegValue "$firefox\Permissions\Autoplay" 'Default' 'block-audio-video' 'String'
+Set-RegValue $ffPrefs 'browser.safebrowsing.malware.enabled'                                  1
+Set-RegValue $ffPrefs 'browser.safebrowsing.phishing.enabled'                                 1
+Set-RegValue $ffPrefs 'browser.safebrowsing.downloads.enabled'                                1
+Set-RegValue $ffPrefs 'browser.safebrowsing.downloads.remote.block_potentially_unwanted'      1
+Set-RegValue $ffPrefs 'browser.safebrowsing.downloads.remote.block_uncommon'                  1
+Set-RegValue $ffPrefs 'xpinstall.whitelist.required'                                          1   # Warn on add-on installs
 
 # --- 3. Internet Explorer (not present on Windows 11) ---
 if ($WindowsVersion -like "*Windows 11*") {
@@ -110,13 +86,11 @@ else {
 
     if ($InternetExplorerState -eq "Enabled") {
         $flash = '{D27CDB6E-AE6D-11cf-96B8-444553540000}'
-        Set-RegistryValues @(
-            @{ Path = 'HKCU:\SOFTWARE\Microsoft\Internet Explorer\New Windows';                  Name = 'PopupMgr'; Value = 1 }
-            @{ Path = 'HKLM:\SOFTWARE\Policies\Microsoft\Internet Explorer\Restrictions';        Name = 'NoPopupManagement'; Value = 0 }
-            # Flash kill bit (64-bit and 32-bit views)
-            @{ Path = "HKLM:\SOFTWARE\Microsoft\Internet Explorer\ActiveX Compatibility\$flash"; Name = 'Compatibility Flags'; Value = 0x400 }
-            @{ Path = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\ActiveX Compatibility\$flash"; Name = 'Compatibility Flags'; Value = 0x400 }
-        )
+        Set-RegValue 'HKCU:\SOFTWARE\Microsoft\Internet Explorer\New Windows'                 'PopupMgr'          1
+        Set-RegValue 'HKLM:\SOFTWARE\Policies\Microsoft\Internet Explorer\Restrictions'       'NoPopupManagement' 0
+        # Flash kill bit (64-bit and 32-bit views)
+        Set-RegValue "HKLM:\SOFTWARE\Microsoft\Internet Explorer\ActiveX Compatibility\$flash"             'Compatibility Flags' 0x400
+        Set-RegValue "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\ActiveX Compatibility\$flash" 'Compatibility Flags' 0x400
     }
 }
 

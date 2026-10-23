@@ -8,27 +8,12 @@ param(
     [string]$RDPState = "Disabled"
 )
 
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
+
 $ErrorActionPreference = 'Stop'
-$ScriptName = Split-Path -Leaf $PSCommandPath
-$ErrorLog   = Join-Path (Get-Location).Path 'errors.log'
-$enable     = $RDPState -eq 'Enabled'
-
-# Runs a step; on failure logs file name + command attempted to errors.log and continues.
-function Invoke-Step {
-    param([scriptblock]$Action)
-    try { & $Action }
-    catch {
-        $cmd = try { $ExecutionContext.InvokeCommand.ExpandString($Action.ToString()).Trim() } catch { $Action.ToString().Trim() }
-        Add-Content -Path $ErrorLog -Value "[$(Get-Date -Format s)] File: $ScriptName | Command: $cmd | Error: $($_.Exception.Message)"
-        Write-Host "[!] Failed: $cmd (see errors.log)" -ForegroundColor Red
-    }
-}
-
-function Set-Reg {
-    param([string]$Path, [string]$Name, [int]$Value)
-    if (-not (Test-Path $Path)) { New-Item -Path $Path -Force | Out-Null }
-    Set-ItemProperty -Path $Path -Name $Name -Value $Value -Type DWord
-}
+$enable = $RDPState -eq 'Enabled'
 
 Write-Host "[*] Configuring Remote Desktop Services for $WindowsVersion (Target State: $RDPState)..." -ForegroundColor Cyan
 
@@ -67,16 +52,16 @@ if ($null -ne (Get-ItemProperty -Path $policy -Name fDenyTSConnections -ErrorAct
 
 foreach ($s in $settings) {
     $path, $name, $value = $s
-    Invoke-Step { Set-Reg $path $name $value }
+    Set-RegValue -Path $path -Name $name -Value $value -Type DWord
 }
 
 # Section 5: services
 foreach ($svc in 'UmRdpService', 'SessionEnv', 'TermService') {
     $startup = if (-not $enable) { 'Disabled' } elseif ($svc -eq 'TermService') { 'Automatic' } else { 'Manual' }
-    Invoke-Step { Set-Service -Name $svc -StartupType $startup }
-    if (-not $enable) { Invoke-Step { Stop-Service -Name $svc -Force } }
+    Invoke-Step -Action { Set-Service -Name $svc -StartupType $startup }
+    if (-not $enable) { Invoke-Step -Action { Stop-Service -Name $svc -Force } }
 }
-if ($enable) { Invoke-Step { Start-Service -Name TermService } }
+if ($enable) { Invoke-Step -Action { Start-Service -Name TermService } }
 
 # Section 6: firewall (built-in "Remote Desktop" group, locale-independent ID)
 $rdpGroup  = '@FirewallAPI.dll,-28752'
@@ -84,12 +69,12 @@ $blockRule = 'Block-RDP-Inbound-3389'
 $hasBlock  = [bool](Get-NetFirewallRule -DisplayName $blockRule -ErrorAction SilentlyContinue)
 
 if ($enable) {
-    if ($hasBlock) { Invoke-Step { Remove-NetFirewallRule -DisplayName $blockRule } }
-    Invoke-Step { Enable-NetFirewallRule -Group $rdpGroup }
+    if ($hasBlock) { Invoke-Step -Action { Remove-NetFirewallRule -DisplayName $blockRule } }
+    Invoke-Step -Action { Enable-NetFirewallRule -Group $rdpGroup }
 } else {
-    Invoke-Step { Disable-NetFirewallRule -Group $rdpGroup }
+    Invoke-Step -Action { Disable-NetFirewallRule -Group $rdpGroup }
     if (-not $hasBlock) {
-        Invoke-Step { New-NetFirewallRule -DisplayName $blockRule -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Block -Profile Any | Out-Null }
+        Invoke-Step -Action { New-NetFirewallRule -DisplayName $blockRule -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Block -Profile Any | Out-Null }
     }
 }
 

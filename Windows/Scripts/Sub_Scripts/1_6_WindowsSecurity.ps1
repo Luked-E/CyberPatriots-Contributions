@@ -4,35 +4,19 @@ param(
     [string]$WindowsVersion = "Windows 11"
 )
 
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
+
 # Terminating errors let Invoke-Step catch and log every failure.
 $ErrorActionPreference = 'Stop'
-$ErrorLog   = Join-Path (Get-Location).Path 'errors.log'
-$ScriptName = Split-Path $PSCommandPath -Leaf
 
 Write-Host "[*] Applying Windows Security & Threat Protection hardening for $WindowsVersion..." -ForegroundColor Cyan
-
-# Runs $Action; on failure logs "<script file> | <command attempted> | <error>" to errors.log.
-function Invoke-Step {
-    param([string]$Command, [scriptblock]$Action)
-    try { & $Action }
-    catch {
-        Write-Host "[-] Failed: $Command" -ForegroundColor Red
-        Add-Content -Path $ErrorLog -Value "[$(Get-Date -Format s)] $ScriptName | $Command | $($_.Exception.Message)"
-    }
-}
 
 function Set-Pref {
     param([string]$Name, $Value)
     $splat = @{ $Name = $Value }
     Invoke-Step "Set-MpPreference -$Name $Value" { Set-MpPreference @splat }
-}
-
-function Set-Reg {
-    param([string]$Path, [string]$Name, $Value, [string]$Type = 'DWord')
-    Invoke-Step "Set-ItemProperty $Path $Name = $Value" {
-        if (-not (Test-Path $Path)) { New-Item -Path $Path -Force | Out-Null }
-        New-ItemProperty -Path $Path -Name $Name -Value $Value -PropertyType $Type -Force | Out-Null
-    }
 }
 
 # 1. Virus & Threat Protection: real-time, cloud-delivered, automatic sample submission,
@@ -63,12 +47,12 @@ Invoke-Step 'Start-MpScan -ScanType FullScan' {
 
 # 2. SmartScreen (Block is the most secure option)
 $policySystem = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System'
-Set-Reg $policySystem 'EnableSmartScreen'     1
-Set-Reg $policySystem 'ShellSmartScreenLevel' 'Block' 'String'
-Set-Reg 'HKLM:\SOFTWARE\Policies\Microsoft\Edge' 'SmartScreenEnabled' 1
+Set-RegValue $policySystem 'EnableSmartScreen'     1
+Set-RegValue $policySystem 'ShellSmartScreenLevel' 'Block' 'String'
+Set-RegValue 'HKLM:\SOFTWARE\Policies\Microsoft\Edge' 'SmartScreenEnabled' 1
 $appHost = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\AppHost'
-Set-Reg $appHost 'EnableWebContentEvaluation' 1
-Set-Reg $appHost 'PreventOverride'            1
+Set-RegValue $appHost 'EnableWebContentEvaluation' 1
+Set-RegValue $appHost 'PreventOverride'            1
 
 # 3. Tamper Protection cannot be set by script (Defender protects the setting); verify only
 Invoke-Step 'Get-MpComputerStatus (IsTamperProtected)' {
@@ -82,4 +66,4 @@ Invoke-Step 'Set-ProcessMitigation -System -Enable CFG,DEP,BottomUp,ForceRelocat
     Set-ProcessMitigation -System -Enable CFG, DEP, BottomUp, ForceRelocateImages, SEHOP, TerminateOnError
 }
 
-Write-Host "[+] Hardening applied. Any failures were logged to $ErrorLog" -ForegroundColor Green
+Write-Host "[+] Hardening applied. Any failures were logged to the Logs directory." -ForegroundColor Green

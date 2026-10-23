@@ -4,33 +4,13 @@ param(
     [string]$WindowsVersion = "Windows 11"
 )
 
-$ScriptName = $MyInvocation.MyCommand.Name
-$ErrorLog   = Join-Path (Get-Location).Path "errors.log"
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
+
 $ErrorActionPreference = 'Stop'
 
 Write-Host "[*] Applying registry hardening for $WindowsVersion..." -ForegroundColor Cyan
-
-function Set-RegValue {
-    param(
-        [string]$Path,
-        [string]$Name,
-        $Value,
-        [string]$Type
-    )
-
-    $command = "Set-ItemProperty -Path '$Path' -Name '$Name' -Value '$Value' -Type $Type"
-    try {
-        if (-not (Test-Path -LiteralPath $Path)) {
-            New-Item -Path $Path -Force -ErrorAction Stop | Out-Null
-        }
-        Set-ItemProperty -LiteralPath $Path -Name $Name -Value $Value -Type $Type -Force -ErrorAction Stop
-        Write-Host "[+] $Name = '$Value'" -ForegroundColor Green
-    }
-    catch {
-        Write-Host "[-] Failed: $Name ($($_.Exception.Message))" -ForegroundColor Red
-        Add-Content -Path $ErrorLog -Value "$(Get-Date -Format s) | $ScriptName | $command | $($_.Exception.Message)"
-    }
-}
 
 $Lsa      = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
 $Session  = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager"
@@ -66,4 +46,4 @@ foreach ($s in $settings) {
     Set-RegValue -Path $s[0] -Name $s[1] -Value $s[2] -Type $s[3]
 }
 
-Write-Host "[+] Registry hardening complete. Any errors were logged to $ErrorLog" -ForegroundColor Green
+Write-Host "[+] Registry hardening complete. Any errors were logged to the Logs directory." -ForegroundColor Green

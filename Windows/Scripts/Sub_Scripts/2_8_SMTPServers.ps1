@@ -8,22 +8,13 @@ param(
     [string]$SMTPState = "Disabled"
 )
 
-$ScriptName = $MyInvocation.MyCommand.Name
-$ErrorLog   = Join-Path (Get-Location).Path "errors.log"
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
+
 $ErrorActionPreference = 'Stop'
 $IsServer   = $WindowsVersion -like "*Server*"
 $FwRuleName = "CP - Block SMTP TCP 25"
-
-# Runs one step; on failure writes "file | command | message" to errors.log and continues.
-function Invoke-Step {
-    param([string]$Command, [scriptblock]$Action)
-    try {
-        & $Action
-    } catch {
-        Add-Content -Path $ErrorLog -Value "[$(Get-Date -Format s)] $ScriptName | $Command | $($_.Exception.Message)"
-        Write-Host "[-] Failed: $Command" -ForegroundColor Red
-    }
-}
 
 Write-Host "[*] Configuring SMTP for $WindowsVersion (Target State: $SMTPState)..." -ForegroundColor Cyan
 

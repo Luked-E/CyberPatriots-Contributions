@@ -1,33 +1,21 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $false)]
-    [string]$WindowsVersion = "Windows 11"
+    [string]$WindowsVersion = "Windows 11",
+
+    [Parameter(Mandatory = $false)]
+    [ValidateSet("Disabled", "Enabled")]
+    [string]$SystemRepair = "Disabled"
 )
+
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
 
 Write-Host "[*] Applying file system, drive security & prohibited media hardening for $WindowsVersion..." -ForegroundColor Cyan
 
-$ScriptName = $MyInvocation.MyCommand.Name
-$ErrorLog   = Join-Path (Get-Location).Path "errors.log"
 $ErrorActionPreference = 'Stop'
-$Drive      = "$env:SystemDrive\"
-
-function Write-ErrorLog {
-    param([string]$Command, [string]$Message)
-    Add-Content -Path $ErrorLog -Value "[$(Get-Date -Format s)] $ScriptName | $Command | $Message"
-    Write-Host "[-] $Command failed: $Message" -ForegroundColor Red
-}
-
-# Runs an action; logs any terminating error or non-zero native exit code.
-function Invoke-Step {
-    param([string]$Command, [scriptblock]$Action)
-    try {
-        $global:LASTEXITCODE = 0
-        & $Action
-        if ($global:LASTEXITCODE -ne 0) { throw "Exit code $global:LASTEXITCODE" }
-    } catch {
-        Write-ErrorLog $Command $_.Exception.Message
-    }
-}
+$Drive = "$env:SystemDrive\"
 
 # Recursive file enumeration that logs (instead of hiding) access errors.
 function Get-FilesLogged {
@@ -37,7 +25,7 @@ function Get-FilesLogged {
     if ($Include) { $params.Include = $Include }
     $items = Get-ChildItem @params
     foreach ($e in $enumErrors) {
-        Write-ErrorLog "Get-ChildItem -Path $($Path -join ',') -Recurse -File -Force" $e.Exception.Message
+        Write-ErrorLog "Get-ChildItem -Path $($Path -join ',') -Recurse -File -Force | $($e.Exception.Message)"
     }
     $items
 }
@@ -51,10 +39,16 @@ foreach ($path in $Drive, "$env:SystemRoot\System32") {
             Write-Host "[!] Note: Could not fully strip Everyone from $path (Protected System ACL)" -ForegroundColor Yellow
         }
     }
-    Invoke-Step "icacls `"$path`"" { icacls $path }
+    Invoke-Step "icacls `"$path`"" { icacls $path | Out-Host }
 }
 
-# 2. Hosts file: keep comments/blank lines and localhost entries only
+    # 2. System file integrity repair (DISM first so SFC has a healthy component store)
+if (&SystemRepair -eq "Enabled") {
+    Invoke-Step 'DISM /Online /Cleanup-Image /RestoreHealth' { DISM /Online /Cleanup-Image /RestoreHealth | Out-Host }
+    Invoke-Step 'sfc /scannow' { sfc /scannow | Out-Host }
+}
+
+# 3. Hosts file: keep comments/blank lines and localhost entries only
 $hosts = "$env:SystemRoot\System32\drivers\etc\hosts"
 Invoke-Step "Reset $hosts to localhost-only entries" {
     $clean = Get-Content -LiteralPath $hosts | Where-Object {
@@ -64,7 +58,7 @@ Invoke-Step "Reset $hosts to localhost-only entries" {
     Set-Content -LiteralPath $hosts -Value $clean -Encoding ASCII
 }
 
-# 4. NTFS alternate data streams under C:\Users (Zone.Identifier is the benign download marker)
+# 5. NTFS alternate data streams under C:\Users (Zone.Identifier is the benign download marker)
 $streams = Get-FilesLogged -Path "$env:SystemDrive\Users" |
     Get-Item -Stream * -ErrorAction SilentlyContinue |
     Where-Object { $_.Stream -notin ':$DATA', "Zone.Identifier" }
@@ -75,7 +69,7 @@ foreach ($s in $streams) {
     }
 }
 
-# 5. Unattended setup / Sysprep answer files containing passwords
+# 6. Unattended setup / Sysprep answer files containing passwords
 $answerFiles = @(
     "$env:SystemRoot\Panther\Unattend.xml",
     "$env:SystemRoot\Panther\Unattend\Unattend.xml",
@@ -85,11 +79,11 @@ $answerFiles = @(
 foreach ($f in $answerFiles) {
     Write-Host "[!] Setup answer file: $f" -ForegroundColor Red
     Invoke-Step "Select-String -Path '$f' -Pattern Password,PlainText" {
-        Select-String -Path $f -Pattern "Password", "PlainText"
+        Select-String -Path $f -Pattern "Password", "PlainText" | Out-Host
     }
 }
 
-# 6. Sticky Keys / accessibility backdoors: restore any binary that is a copy of cmd.exe
+# 7. Sticky Keys / accessibility backdoors: restore any binary that is a copy of cmd.exe
 $system32 = "$env:SystemRoot\System32"
 $cmdHash  = (Get-FileHash "$system32\cmd.exe").Hash
 foreach ($name in "sethc.exe", "utilman.exe", "osk.exe", "narrator.exe", "magnify.exe") {
@@ -97,10 +91,10 @@ foreach ($name in "sethc.exe", "utilman.exe", "osk.exe", "narrator.exe", "magnif
     if (-not (Test-Path -LiteralPath $file)) { continue }
     if ((Get-FileHash $file).Hash -eq $cmdHash) {
         Write-Host "[!] BACKDOOR: $name is a copy of cmd.exe - restoring with sfc..." -ForegroundColor Red
-        Invoke-Step "sfc /scanfile=$file" { sfc /scanfile=$file }
+        Invoke-Step "sfc /scanfile=$file" { sfc /scanfile=$file | Out-Host }
     } else {
         Write-Host "[+] $name verified." -ForegroundColor Green
     }
 }
 
-Write-Host "[+] Hardening applied successfully. Errors (if any) logged to $ErrorLog" -ForegroundColor Green
+Write-Host "[+] Hardening applied successfully. Errors (if any) logged to the Logs directory." -ForegroundColor Green

@@ -12,20 +12,11 @@ param(
     [string]$RemoteRegistryState = "Disabled"
 )
 
-$ScriptName = Split-Path -Leaf $PSCommandPath
-$ErrorLog   = Join-Path (Get-Location).Path "errors.log"
-$ErrorActionPreference = 'Stop'
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
 
-# Runs one step; any error is appended to errors.log with the file name and command attempted.
-function Invoke-Step {
-    param([string]$Description, [scriptblock]$Action)
-    try {
-        & $Action
-    } catch {
-        Add-Content -Path $ErrorLog -Value ("[{0}] File: {1} | Command: {2} | Error: {3}" -f (Get-Date -Format s), $ScriptName, $Description, $_.Exception.Message)
-        Write-Host "[-] Failed: $Description (see errors.log)" -ForegroundColor Red
-    }
-}
+$ErrorActionPreference = 'Stop'
 
 function Set-ServiceState {
     param([string]$Name, [string]$State)
@@ -69,4 +60,4 @@ if ($WinRMState -eq "Disabled") {
 # Remote Registry
 Set-ServiceState -Name "RemoteRegistry" -State $RemoteRegistryState
 
-Write-Host "[+] Remote administration hardening applied. Any errors were logged to $ErrorLog." -ForegroundColor Green
+Write-Host "[+] Remote administration hardening applied. Any errors were logged to the Logs folder." -ForegroundColor Green

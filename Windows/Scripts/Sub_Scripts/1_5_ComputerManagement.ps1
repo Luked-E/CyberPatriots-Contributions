@@ -4,26 +4,13 @@ param(
     [string]$WindowsVersion = "Windows 11"
 )
 
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
+
 # Any non-terminating error becomes terminating so Invoke-Step can log it.
 $ErrorActionPreference = 'Stop'
-$LogSizeKB  = 65536
-$ScriptName = $MyInvocation.MyCommand.Name
-$ErrorLog   = Join-Path (Get-Location).Path 'errors.log'
-$script:ErrorCount = 0
-
-# Runs one action; on any failure appends "time | script | command | message" to errors.log.
-function Invoke-Step {
-    param([string]$Command, [scriptblock]$Action)
-    try {
-        $global:LASTEXITCODE = 0
-        & $Action | Out-Host
-        if ($LASTEXITCODE -ne 0) { throw "Exit code $LASTEXITCODE" }
-    } catch {
-        $script:ErrorCount++
-        Add-Content -Path $ErrorLog -Value ("[{0}] {1} | {2} | {3}" -f (Get-Date -Format s), $ScriptName, $Command, $_.Exception.Message)
-        Write-Host "[-] Failed: $Command (logged to $ErrorLog)" -ForegroundColor Red
-    }
-}
+$LogSizeKB = 65536
 
 Write-Host "[*] Applying Computer Management hardening for $WindowsVersion (Min log size: $LogSizeKB KB)..." -ForegroundColor Cyan
 
@@ -68,17 +55,17 @@ Write-Host "[*] 4. Security event log threat hunting report..." -ForegroundColor
 Invoke-Step "Get-WinEvent Security Ids 4624,4625,4720,4726,4728,4732,4697,1102" {
     $sec = Get-WinEvent -FilterHashtable @{ LogName = 'Security'; Id = 4624, 4625, 4720, 4726, 4728, 4732, 4697, 1102 } -MaxEvents 5000 -ErrorAction SilentlyContinue
     Write-Host "Event counts (newest 5000 matching events):"
-    $sec | Group-Object Id | Sort-Object Name | Format-Table @{n = 'EventId'; e = { $_.Name } }, Count -AutoSize
+    $sec | Group-Object Id | Sort-Object Name | Format-Table @{n = 'EventId'; e = { $_.Name } }, Count -AutoSize | Out-Host
     $remote = @($sec | Where-Object { $_.Id -eq 4624 -and $_.Properties[8].Value -in 3, 10 }).Count
     Write-Host "Successful network/RDP logons (4624, type 3 or 10): $remote"
     Write-Host "Account, group, service and log-clear events:"
     $sec | Where-Object { $_.Id -notin 4624, 4625 } |
-        Format-Table TimeCreated, Id, @{n = 'Summary'; e = { ($_.Message -split "`r?`n")[0] } } -AutoSize -Wrap
+        Format-Table TimeCreated, Id, @{n = 'Summary'; e = { ($_.Message -split "`r?`n")[0] } } -AutoSize -Wrap | Out-Host
 }
 Invoke-Step "Get-WinEvent System Id 7045" {
     Write-Host "New services installed (7045):"
     Get-WinEvent -FilterHashtable @{ LogName = 'System'; Id = 7045 } -MaxEvents 20 -ErrorAction SilentlyContinue |
-        Format-Table TimeCreated, @{n = 'ServiceName'; e = { $_.Properties[0].Value } }, @{n = 'ImagePath'; e = { $_.Properties[1].Value } } -AutoSize -Wrap
+        Format-Table TimeCreated, @{n = 'ServiceName'; e = { $_.Properties[0].Value } }, @{n = 'ImagePath'; e = { $_.Properties[1].Value } } -AutoSize -Wrap | Out-Host
 }
 
 # 5. Shared Folders: stop non-default shares, close sessions, list open files
@@ -92,11 +79,7 @@ Invoke-Step "Get-SmbShare (non-default shares)" {
 Invoke-Step "Get-SmbSession | Close-SmbSession -Force" { Get-SmbSession | Close-SmbSession -Force }
 Invoke-Step "Get-SmbOpenFile" {
     Write-Host "Files open over the network:"
-    Get-SmbOpenFile | Format-Table ClientComputerName, ClientUserName, Path -AutoSize
+    Get-SmbOpenFile | Format-Table ClientComputerName, ClientUserName, Path -AutoSize | Out-Host
 }
 
-if ($script:ErrorCount -gt 0) {
-    Write-Host "[!] Completed with $script:ErrorCount error(s). See $ErrorLog" -ForegroundColor Yellow
-} else {
-    Write-Host "[+] Hardening applied successfully." -ForegroundColor Green
-}
+Write-Host "[+] Hardening complete. Any failures were logged to the Logs directory." -ForegroundColor Green

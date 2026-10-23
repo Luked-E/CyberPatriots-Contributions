@@ -4,25 +4,11 @@ param(
     [string]$WindowsVersion = "Windows 11"
 )
 
-# --- Error log: errors are APPENDED to error.log (shared by all subscripts) ---
-# Lives in the orchestrator root (parent of Sub_Scripts) when run from Sub_Scripts, otherwise next to this script.
-$ScriptName = Split-Path -Leaf $PSCommandPath
-$LogDir     = if ((Split-Path -Leaf $PSScriptRoot) -eq "Sub_Scripts") { Split-Path -Parent $PSScriptRoot } else { $PSScriptRoot }
-$ErrorLogPath = Join-Path $LogDir "errors.log"
-$script:Failures = 0
-$ErrorActionPreference = 'Stop'
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
 
-function Write-ErrorLog {
-    param([Parameter(Mandatory)][string]$Message)
-    $script:Failures++
-    Write-Host "    [!] $Message" -ForegroundColor Red
-    $line = "{0} [ERROR] [{1}] [{2}] {3}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $ScriptName, $WindowsVersion, $Message
-    try {
-        Add-Content -LiteralPath $ErrorLogPath -Value $line -Encoding UTF8 -ErrorAction Stop
-    } catch {
-        Write-Host "    [!] Could not write to $ErrorLogPath : $($_.Exception.Message)" -ForegroundColor Red
-    }
-}
+$ErrorActionPreference = 'Stop'
 
 # Any unexpected terminating error is logged too, and the script keeps going.
 trap {
@@ -32,52 +18,13 @@ trap {
 
 Write-Host "[*] Applying security hardening baseline for $WindowsVersion..." -ForegroundColor Cyan
 
-# Creates the key if missing and writes a typed value; logs failures instead of hiding them.
-function Set-RegValue {
-    param(
-        [Parameter(Mandatory)][string]$Path,
-        [Parameter(Mandatory)][string]$Name,
-        [Parameter(Mandatory)]$Value,
-        [ValidateSet("DWord", "String")][string]$Type = "DWord"
-    )
-    try {
-        if (-not (Test-Path -LiteralPath $Path)) {
-            New-Item -Path $Path -Force -ErrorAction Stop | Out-Null
-        }
-        New-ItemProperty -LiteralPath $Path -Name $Name -Value $Value -PropertyType $Type -Force -ErrorAction Stop | Out-Null
-    } catch {
-        Write-ErrorLog "Failed to set $Path\$Name : $($_.Exception.Message)"
-    }
-}
-
-# --- Pre-flight: must be elevated (HKLM, firewall, VSS, and restore points all require it) ---
-$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-    [Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $isAdmin) {
-    Write-ErrorLog "Script must be run as Administrator."
-    exit 1
-}
-
 # 1. System Protection & Baseline Restore Point
 #    Runs FIRST so the restore point captures the system before any changes below.
-Write-Host "[*] Configuring System Protection and creating baseline restore point..." -ForegroundColor Yellow
+Write-Host "[*] Configuring System Protection" -ForegroundColor Yellow
 
 # Windows throttles restore points to one per 24h by default; 0 removes the throttle.
 Set-RegValue -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" `
              -Name "SystemRestorePointCreationFrequency" -Value 0 -Type DWord
-
-try {
-    if ($PSVersionTable.PSEdition -eq "Core") {
-        # The System Restore cmdlets only exist in Windows PowerShell 5.1
-        $out = & powershell.exe -NoProfile -Command "Enable-ComputerRestore -Drive 'C:\' -ErrorAction Stop; Checkpoint-Computer -Description 'CyberPatriot Baseline Clean' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop" 2>&1
-        if ($LASTEXITCODE -ne 0) { throw "powershell.exe exited with code $LASTEXITCODE. $($out -join ' ')" }
-    } else {
-        Enable-ComputerRestore -Drive "C:\" -ErrorAction Stop
-        Checkpoint-Computer -Description "CyberPatriot Baseline Clean" -RestorePointType "MODIFY_SETTINGS" -ErrorAction Stop
-    }
-} catch {
-    Write-ErrorLog "Restore point failed: $($_.Exception.Message)"
-}
 
 $out = vssadmin resize shadowstorage /For=C: /On=C: /MaxSize=10% 2>&1
 if ($LASTEXITCODE -ne 0) {
@@ -184,9 +131,14 @@ foreach ($p in $SchProtocols) {
     }
 }
 
-if ($script:Failures -eq 0) {
+# Failure count and log path live in the module's scope, so read them from there.
+$EngineModule = Get-Module -Name EngineUtils
+$Failures     = & $EngineModule { $script:Failures }
+$ErrorLogPath = & $EngineModule { $script:ErrorLogPath }
+
+if ($Failures -eq 0) {
     Write-Host "[+] Security hardening baseline applied successfully." -ForegroundColor Green
 } else {
-    Write-Host "[!] Baseline applied with $($script:Failures) error(s). See $ErrorLogPath" -ForegroundColor Yellow
+    Write-Host "[!] Baseline applied with $Failures error(s). See $ErrorLogPath" -ForegroundColor Yellow
 }
 Write-Host "[*] Restart is required for SCHANNEL changes; sign out/in for HKCU changes to fully apply." -ForegroundColor Cyan

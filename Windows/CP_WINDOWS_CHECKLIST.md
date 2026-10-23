@@ -755,27 +755,20 @@ Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
 ```
 *(Restricts execution of unsigned scripts downloaded from the Internet while allowing local administrative scripts).*
 
-### 7. Operating System File Integrity Repair (SFC & DISM)
-```cmd
-sfc /scannow
-DISM /Online /Cleanup-Image /RestoreHealth
-```
-*(Repairs corrupted system files, system DLLs, and broken firewall/auditing providers altered by rootkits).*
-
-### 8. DNS Cache Forensics and Cleansing
+### 7. DNS Cache Forensics and Cleansing
 ```cmd
 ipconfig /displaydns | more
 ipconfig /flushdns
 ```
 *(Inspects recently resolved domain names for C2 activity and flushes poisoned DNS records).*
 
-### 9. Map Listening Ports to Owning Process Names & File Paths
+### 8. Map Listening Ports to Owning Process Names & File Paths
 ```powershell
 Get-NetTCPConnection -State Listen | Select-Object LocalAddress, LocalPort, OwningProcess, @{Name="ProcessName";Expression={(Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue).ProcessName}}, @{Name="Path";Expression={(Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue).Path}} | Sort-Object LocalPort | Format-Table -AutoSize
 ```
 *(Directly correlates open TCP listening sockets with their exact executable paths).*
 
-### 10. Query SMB Shares and Sessions via PowerShell
+### 9. Query SMB Shares and Sessions via PowerShell
 ```powershell
 Get-SmbShare | Format-Table -AutoSize
 Get-SmbSession | Format-Table -AutoSize
@@ -797,12 +790,20 @@ Get-SmbOpenFile | Format-Table -AutoSize
     icacls "C:\Windows\System32" /verify
     ```
 
-### 2. Hosts File Cleansing
+### 2. Operating System File Integrity Repair (SFC & DISM)
+```cmd
+sfc /scannow
+DISM /Online /Cleanup-Image /RestoreHealth
+```
+*(Repairs corrupted system files, system DLLs, and broken firewall/auditing providers altered by rootkits).*
+
+
+### 3. Hosts File Cleansing
 - **Location**: `C:\Windows\System32\drivers\etc\hosts`
 - **Inspection**: Open file with Notepad as Administrator.
 - **Action**: Remove malicious redirections that redirect antivirus update servers, Microsoft URLs, or search engines to loopback or rogue IP addresses. Retain only default localhost entries (`127.0.0.1 localhost`).
 
-### 3. Prohibited Media Files Searching & Deletion
+### 4. Prohibited Media Files Searching & Deletion
 Search through drive for unauthorized audio, video, picture, and game files (`.mp3`, `.mp4`, `.mov`, `.avi`, `.png`, `.jpg`, `.gif`, etc.):
 ```cmd
 dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
@@ -810,7 +811,7 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
 > [!CAUTION]
 > **Forensics Question Warning**: Sometimes a media or text file contains the answer to a forensics question! Always copy/read forensics answer candidates before deleting files. Once answers are submitted and verified, delete unauthorized media files.
 
-### 4. Hunt and Remove NTFS Alternate Data Streams (ADS)
+### 5. Hunt and Remove NTFS Alternate Data Streams (ADS)
 - **Command Line (Admin)**:
   ```cmd
   dir /R C:\Users\
@@ -825,7 +826,7 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
   ```
 - **Security Justification**: Adversaries attach hidden executables to benign files using alternate streams (e.g., `calc.txt:backdoor.exe`), hiding malware from standard Explorer views.
 
-### 5. Audit Unattended Setup & Sysprep Passwords
+### 6. Audit Unattended Setup & Sysprep Passwords
 - **PowerShell (Admin) Command**:
   ```powershell
   $answerFiles = @(
@@ -843,7 +844,7 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
   ```
 - **Remediation**: Record valid credentials for forensics question verification, then delete the answer files or scrub plain-text XML password tags.
 
-### 6. Verify Accessibility Binaries Against Sticky Keys Backdoors
+### 7. Verify Accessibility Binaries Against Sticky Keys Backdoors
 - **PowerShell (Admin) Audit**:
   ```powershell
   $cmdHash = (Get-FileHash C:\Windows\System32\cmd.exe).Hash

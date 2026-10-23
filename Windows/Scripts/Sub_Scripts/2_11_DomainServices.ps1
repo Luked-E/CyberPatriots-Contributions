@@ -8,9 +8,11 @@ param(
     [switch]$EnableRecycleBin
 )
 
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
+
 $ErrorActionPreference = 'Stop'
-$ErrorLog   = Join-Path $PWD 'errors.log'
-$ScriptName = $MyInvocation.MyCommand.Name
 
 Write-Host "[*] Applying Active Directory hardening for $WindowsVersion..." -ForegroundColor Cyan
 
@@ -18,20 +20,6 @@ Write-Host "[*] Applying Active Directory hardening for $WindowsVersion..." -For
 if ((Get-CimInstance Win32_ComputerSystem).DomainRole -lt 4) {
     Write-Host "[!] This host is not a Domain Controller. Nothing to do." -ForegroundColor Yellow
     return
-}
-
-# Runs a command; logs cmdlet errors and non-zero native exit codes to errors.log, then continues.
-function Invoke-Step {
-    param([string]$Description, [scriptblock]$Command)
-    try {
-        $global:LASTEXITCODE = 0
-        & $Command
-        if ($LASTEXITCODE -ne 0) { throw "Exit code $LASTEXITCODE" }
-    } catch {
-        $text = ($Command.ToString() -replace '\s+', ' ').Trim()
-        Add-Content -Path $ErrorLog -Value ("[{0}] File: {1} | Step: {2} | Command: {3} | Error: {4}" -f (Get-Date -Format s), $ScriptName, $Description, $text, $_.Exception.Message)
-        Write-Host "[-] Failed: $Description (see $ErrorLog)" -ForegroundColor Red
-    }
 }
 
 Add-Type -AssemblyName System.Web
@@ -48,9 +36,7 @@ Invoke-Step 'Set domain password and lockout policy' {
 
 # --- Default Domain Controllers Policy: auditing (Success + Failure) ---
 # Make advanced audit subcategories win over legacy GPO audit settings so they persist.
-Invoke-Step 'Force advanced audit policy' {
-    Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name SCENoApplyLegacyAuditPolicy -Value 1 -Type DWord
-}
+Set-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' 'SCENoApplyLegacyAuditPolicy' 1
 foreach ($target in '/category:Account Management', '/category:Logon/Logoff', '/subcategory:Directory Service Access') {
     Invoke-Step "Enable auditing $target" { auditpol /set $target /success:enable /failure:enable | Out-Null }
 }
@@ -61,10 +47,20 @@ Invoke-Step 'Require Kerberos preauthentication' {
 }
 
 # --- Kerberoasting: strong random passwords on SPN accounts, and none in Domain Admins ---
-$daSid        = Invoke-Step 'Resolve Domain Admins SID' { "$((Get-ADDomain).DomainSID)-512" }
-$spnAccounts  = @(Invoke-Step 'List accounts with SPNs' {
-    Get-ADUser -Filter 'ServicePrincipalName -like "*"' | Where-Object SamAccountName -ne 'krbtgt'
-})
+$daSid = $null
+try {
+    $daSid = "$((Get-ADDomain).DomainSID)-512"
+} catch {
+    Write-WarningLog -Message "Resolve Domain Admins SID | $($_.Exception.Message)"
+}
+
+$spnAccounts = @()
+try {
+    $spnAccounts = @(Get-ADUser -Filter 'ServicePrincipalName -like "*"' | Where-Object SamAccountName -ne 'krbtgt')
+} catch {
+    Write-WarningLog -Message "List accounts with SPNs | $($_.Exception.Message)"
+}
+
 foreach ($account in $spnAccounts) {
     Invoke-Step "Harden SPN account $($account.SamAccountName)" {
         Set-ADAccountPassword -Identity $account -Reset -NewPassword (New-RandomPassword)
@@ -73,7 +69,13 @@ foreach ($account in $spnAccounts) {
 }
 
 # --- krbtgt: reset twice (wait for replication between resets only when other DCs exist) ---
-$multiDc = @(Invoke-Step 'List domain controllers' { Get-ADDomainController -Filter * }).Count -gt 1
+$multiDc = $false
+try {
+    $multiDc = @(Get-ADDomainController -Filter *).Count -gt 1
+} catch {
+    Write-WarningLog -Message "List domain controllers | $($_.Exception.Message)"
+}
+
 foreach ($pass in 1..2) {
     Invoke-Step "Reset krbtgt password (pass $pass of 2)" {
         Set-ADAccountPassword -Identity krbtgt -Reset -NewPassword (New-RandomPassword)
@@ -93,4 +95,4 @@ if ($EnableRecycleBin) {
     }
 }
 
-Write-Host "[+] Active Directory hardening complete. Check $ErrorLog for any failures." -ForegroundColor Green
+Write-Host "[+] Active Directory hardening complete. Check the Logs directory for any failures." -ForegroundColor Green

@@ -25,22 +25,14 @@ param(
     [switch]$KeepVirtualMachinePlatform
 )
 
-$ScriptName = Split-Path -Leaf $PSCommandPath
-$ErrorLog   = Join-Path (Get-Location).Path "errors.log"
-$IsServer   = $WindowsVersion -like "*Server*"
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
+
+$IsServer = $WindowsVersion -like "*Server*"
 $ErrorActionPreference = 'Stop'
 
 Write-Host "[*] Applying Windows features hardening for $WindowsVersion..." -ForegroundColor Cyan
-
-# Runs an action; on failure logs script name, command attempted and error to errors.log
-function Invoke-Safe {
-    param([string]$Command, [scriptblock]$Action)
-    try { & $Action }
-    catch {
-        Add-Content -Path $ErrorLog -Value "[$(Get-Date -Format s)] $ScriptName | Command: $Command | Error: $($_.Exception.Message)"
-        Write-Host "[-] Failed: $Command" -ForegroundColor Red
-    }
-}
 
 # Returns names that match any wildcard pattern
 function Select-Match {
@@ -53,7 +45,7 @@ function Disable-Optional {
     param([string[]]$Patterns)
     $names = @(Select-Match $script:EnabledOptional $Patterns)
     if (-not $names) { return }
-    Invoke-Safe "Disable-WindowsOptionalFeature -Online -FeatureName $($names -join ',') -NoRestart" {
+    Invoke-Step "Disable-WindowsOptionalFeature -Online -FeatureName $($names -join ',') -NoRestart" {
         Disable-WindowsOptionalFeature -Online -FeatureName $names -NoRestart -ErrorAction Stop | Out-Null
         Write-Host "[+] Disabled: $($names -join ', ')" -ForegroundColor Green
     }
@@ -64,7 +56,7 @@ $sharedPatterns = @("Microsoft-Windows-Subsystem-Linux", "Containers-DisposableC
 if (-not $KeepVirtualMachinePlatform) { $sharedPatterns += "VirtualMachinePlatform" }
 
 $script:EnabledOptional = @()
-Invoke-Safe "Get-WindowsOptionalFeature -Online" {
+Invoke-Step "Get-WindowsOptionalFeature -Online" {
     $script:EnabledOptional = @((Get-WindowsOptionalFeature -Online -ErrorAction Stop | Where-Object State -eq "Enabled").FeatureName)
     # Shield IIS FTP and the IIS role it requires from the broad IIS-* match
     if ($KeepFTP) { $script:EnabledOptional = @($script:EnabledOptional | Where-Object { $_ -notmatch "^(IIS-FTP|IIS-WebServerRole$)" }) }
@@ -81,12 +73,12 @@ if ($IsServer) {
     if (-not $KeepRDS)  { $serverPatterns += "RDS-*", "Remote-Desktop-Services" }
     if (-not $KeepADCS) { $serverPatterns += "ADCS-*" }
 
-    Invoke-Safe "Import-Module ServerManager" { Import-Module ServerManager -ErrorAction Stop }
-    Invoke-Safe "Get-WindowsFeature | Where-Object Installed" {
+    Invoke-Step "Import-Module ServerManager" { Import-Module ServerManager -ErrorAction Stop }
+    Invoke-Step "Get-WindowsFeature | Where-Object Installed" {
         $installed = @((Get-WindowsFeature -ErrorAction Stop | Where-Object Installed).Name)
         $remove = @(Select-Match $installed $serverPatterns)
         if ($remove) {
-            Invoke-Safe "Remove-WindowsFeature -Name $($remove -join ',')" {
+            Invoke-Step "Remove-WindowsFeature -Name $($remove -join ',')" {
                 Remove-WindowsFeature -Name $remove -ErrorAction Stop | Out-Null
                 Write-Host "[+] Removed: $($remove -join ', ')" -ForegroundColor Green
             }
@@ -106,7 +98,7 @@ else {
 }
 
 # Audit: list optional features still enabled
-Invoke-Safe "Get-WindowsOptionalFeature -Online | Where-Object State -eq Enabled" {
+Invoke-Step "Get-WindowsOptionalFeature -Online | Where-Object State -eq Enabled" {
     Write-Host "[*] Optional features still enabled:" -ForegroundColor Cyan
     Get-WindowsOptionalFeature -Online -ErrorAction Stop | Where-Object State -eq "Enabled" |
         Select-Object FeatureName | Sort-Object FeatureName | Format-Table -HideTableHeaders | Out-Host

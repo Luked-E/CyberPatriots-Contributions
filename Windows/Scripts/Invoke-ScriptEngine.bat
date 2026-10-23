@@ -17,6 +17,6 @@ if %errorlevel% neq 0 (
 cd /d "%~dp0"
 
 :: Ensure PowerShell execution policy allows running scripts in this session
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Engine.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0ScriptEngine.ps1"
 
 exit /b %errorlevel%

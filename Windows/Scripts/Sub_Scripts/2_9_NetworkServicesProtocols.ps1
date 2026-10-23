@@ -11,22 +11,13 @@ param(
     [ValidateSet("Disabled", "Enabled")][string]$RdpRedirectorState = "Disabled"   # UmRdpService
 )
 
-$ScriptName = $MyInvocation.MyCommand.Name
-$ErrorLog   = Join-Path (Get-Location).Path "errors.log"
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
+
 $ErrorActionPreference = 'Stop'
 
 Write-Host "[*] Configuring network services & legacy protocols for $WindowsVersion..." -ForegroundColor Cyan
-
-# Runs an action; on failure logs "file | command | error" to errors.log in the current directory.
-function Invoke-Logged {
-    param([string]$Command, [scriptblock]$Action)
-    try { & $Action }
-    catch {
-        $msg = $_.Exception.Message
-        Add-Content -Path $ErrorLog -Value "[$(Get-Date -Format 's')] File: $ScriptName | Command: $Command | Error: $msg"
-        Write-Host "[!] Failed: $Command - $msg" -ForegroundColor Red
-    }
-}
 
 # Sets startup type and running state. Only touches services that exist and differ from the target.
 function Set-ServiceState {
@@ -42,15 +33,15 @@ function Set-ServiceState {
 
     try {
         if ($svc.StartType -ne $startup) {
-            Invoke-Logged "Set-Service -Name $Name -StartupType $startup" {
+            Invoke-Step "Set-Service -Name $Name -StartupType $startup" {
                 Set-Service -Name $Name -StartupType $startup -ErrorAction Stop
             }
         }
         if ($State -eq "Disabled" -and $svc.Status -ne "Stopped") {
-            Invoke-Logged "Stop-Service -Name $Name -Force" { Stop-Service -Name $Name -Force -ErrorAction Stop }
+            Invoke-Step "Stop-Service -Name $Name -Force" { Stop-Service -Name $Name -Force -ErrorAction Stop }
         }
         elseif ($State -eq "Enabled" -and $svc.Status -ne "Running") {
-            Invoke-Logged "Start-Service -Name $Name" { Start-Service -Name $Name -ErrorAction Stop }
+            Invoke-Step "Start-Service -Name $Name" { Start-Service -Name $Name -ErrorAction Stop }
         }
         Write-Host "[+] $Name -> $State" -ForegroundColor Green
     } catch {
@@ -83,4 +74,4 @@ $alwaysDisabled | ForEach-Object { Set-ServiceState -Name $_ -State "Disabled" }
 $alwaysEnabled  | ForEach-Object { Set-ServiceState -Name $_ -State "Enabled" }
 foreach ($name in $optional.Keys) { Set-ServiceState -Name $name -State $optional[$name] }
 
-Write-Host "[+] Network services & legacy protocols hardening complete. Errors (if any): $ErrorLog" -ForegroundColor Green
+Write-Host "[+] Network services & legacy protocols hardening complete. Errors (if any) are in the Logs directory." -ForegroundColor Green

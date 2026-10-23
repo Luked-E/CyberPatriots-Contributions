@@ -4,28 +4,16 @@ param(
     [string]$WindowsVersion = "Windows 11"
 )
 
+$ParentDir = [System.IO.Directory]::GetParent($PSScriptRoot).FullName
+Import-Module -Name "$ParentDir\EngineUtils.psd1" -Force
+Assert-AdminPrivileges
+
 $ErrorActionPreference = 'Stop'
-$ScriptName = $MyInvocation.MyCommand.Name
-$ErrorLog   = Join-Path (Get-Location).Path 'errors.log'
 $System32   = Join-Path $env:SystemRoot 'System32'
 
 # Rogue names from the Task Manager audit list (dual extension, netcat, meterpreter, adware/trojans, torrent tools)
 $RoguePattern = '\bnc\.exe|\bncat|netcat|meterpreter|SharpChrome|IOTransfer|torrent|\.exe\.exe'
 $CoreNames    = 'svchost.exe', 'lsass.exe', 'csrss.exe', 'services.exe'
-
-# Runs an action; on failure logs "file | command | error" to errors.log in the current directory.
-function Invoke-Step {
-    param([string]$Command, [scriptblock]$Action)
-    try {
-        $global:LASTEXITCODE = 0
-        & $Action
-        if ($LASTEXITCODE -ne 0) { throw "Exit code $LASTEXITCODE" }
-        Write-Host "[+] $Command" -ForegroundColor Green
-    } catch {
-        Add-Content -Path $ErrorLog -Value "[$(Get-Date -Format s)] $ScriptName | $Command | $($_.Exception.Message)"
-        Write-Host "[!] Failed: $Command" -ForegroundColor Red
-    }
-}
 
 Write-Host "[*] Applying Task Manager hardening for $WindowsVersion..." -ForegroundColor Cyan
 
