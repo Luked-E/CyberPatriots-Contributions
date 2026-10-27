@@ -27,19 +27,6 @@ $browserCatalog = @{
     Firefox = @{ Id = 'Mozilla.Firefox'; Name = 'Mozilla Firefox' }
 }
 
-# --- 1. Update the selected browser (winget ships with Windows 11) ---
-if ($Browser -ne "None") {
-    $id = $browserCatalog[$Browser].Id
-    Invoke-Step "winget upgrade --id $id" {
-        if (-not (Get-Command winget -ErrorAction SilentlyContinue)) { throw "winget not found" }
-        try {
-            winget upgrade --id $id --exact --source winget --silent --accept-source-agreements --accept-package-agreements | Out-Null
-        } catch {
-            Write-Host "[!] Winget online source query failed or blocked. Skipping application update." -ForegroundColor Yellow
-        }
-    }
-}
-
 # --- 2. Browser policies (HKLM policy keys are what the browsers read on Windows 11) ---
 $chrome  = 'HKLM:\SOFTWARE\Policies\Google\Chrome'
 $edge    = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge'

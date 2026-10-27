@@ -22,7 +22,7 @@ if (-not (Test-Path -LiteralPath $LogDir)) {
     New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
 }
 
-$ScriptName = Get-PSCallStack
+$ScriptName = (Get-PSCallStack)[0].Command
 
 # Set the dynamic log file path: {script name}_{current date}.log
 $CurrentDate = Get-Date -Format "yyyy-MM-dd"
@@ -37,8 +37,30 @@ function Write-ErrorLog {
         [string]$Message,
 
         [Parameter(Mandatory = $false)]
-        [string]$ScriptName = (Get-PSCallStack)[0].Command
+        [string]$ScriptName = ""
     )
+
+    # If ScriptName wasn't explicitly passed, walk up the call stack to find the calling file
+    if ([string]::IsNullOrEmpty($ScriptName)) {
+        $callStack = Get-PSCallStack
+        
+        # Look through stack frames for a script file that is NOT this module file itself
+        foreach ($frame in $callStack) {
+            $scriptPath = $frame.ScriptName
+            if (-not [string]::IsNullOrEmpty($scriptPath) -and 
+                $scriptPath -notlike "*EngineUtils.psd1" -and 
+                $scriptPath -notlike "*Engine.ps1") {
+                
+                $ScriptName = Split-Path -Leaf $scriptPath
+                break
+            }
+        }
+        
+        # Fallback if no specific script frame is found
+        if ([string]::IsNullOrEmpty($ScriptName)) {
+            $ScriptName = "UnknownScript"
+        }
+    }
 
     Write-Host "    [!] $Message" -ForegroundColor Red
     $logLine = "{0} [ERROR] [{1}] [{2}] {3}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $ScriptName, $WindowsVersion, $Message
@@ -166,9 +188,28 @@ function Set-RegValue {
         }
 
         $typedValue = switch ($Type) {
-            "DWord"  { [int]$Value }
-            "QWord"  { [long]$Value }
-            default  { $Value }
+            "DWord"        { [int]$Value }
+            "QWord"        { [long]$Value }
+            "MultiString"  { 
+                # Ensure the value is strictly typed as a string array ([string[]]), 
+                # handling empty arrays, single strings, or predefined $none arrays safely.
+                if ($null -eq $Value) {
+                    [string[]]@()
+                } elseif ($Value -is [string]) {
+                    [string[]]@($Value)
+                } else {
+                    [string[]]$Value
+                }
+            }
+            "Binary"       { 
+                # Convert space-separated hex string format (e.g. '70 0 0 0 ...') into a byte array
+                if ($Value -is [string]) {
+                    [byte[]]($Value -split '\s+' | ForEach-Object { [Convert]::ToByte($_, 16) })
+                } else {
+                    [byte[]]$Value
+                }
+            }
+            default        { $Value }
         }
 
         [Microsoft.Win32.Registry]::SetValue($netPath, $Name, $typedValue, $valueKind)

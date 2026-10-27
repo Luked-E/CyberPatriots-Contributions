@@ -5,10 +5,6 @@ param(
 
     [Parameter(Mandatory = $false)]
     [ValidateSet("Disabled", "Enabled")]
-    [string]$SMB1State = "Disabled",
-
-    [Parameter(Mandatory = $false)]
-    [ValidateSet("Disabled", "Enabled")]
     [string]$SMBCompression = "Disabled"
 )
 
@@ -20,10 +16,9 @@ $ErrorActionPreference = 'Stop'   # make every cmdlet failure catchable by Invok
 
 Write-Host "[*] Applying SMB & file sharing hardening for $WindowsVersion (SMB1: $SMB1State, SMB Compression: $SMBCompression)..." -ForegroundColor Cyan
 
-# --- 1. SMBv1 (optional feature + server config) ---
-$smb1On = $SMB1State -eq 'Enabled'
-$verb   = if ($smb1On) { 'Enable' } else { 'Disable' }
-Invoke-Step -Action { & "$verb-WindowsOptionalFeature" -Online -FeatureName SMB1Protocol -NoRestart | Out-Null }
+# --- 1. Disable SMBv1  ---
+
+Invoke-Step -Action { & "Disable-WindowsOptionalFeature" -Online -FeatureName SMB1Protocol -NoRestart | Out-Null }
 Invoke-Step -Action { Set-SmbServerConfiguration -EnableSMB1Protocol $smb1On -Force }
 if ($smb1On) { Write-Host "[!] SMBv1 left enabled by request (insecure)." -ForegroundColor Yellow }
 
@@ -78,8 +73,8 @@ $settings = @(
 foreach ($s in $settings) {
     $path, $name = $s[0], $s[1]
     $value = $s[2]
-    $kind  = if ($value -is [array]) { 'MultiString' } else { 'DWord' }
-    Set-RegValue -Path $path -Name $name -Value $value -Type $kind
+    $type  = if ($value -is [array]) { 'MultiString' } else { 'DWord' }
+    Set-RegValue -Path $path -Name $name -Value $value -Type $type
 }
 
 # Anonymous SID/Name translation has no registry value; it is a Local Security Policy (secedit) setting.

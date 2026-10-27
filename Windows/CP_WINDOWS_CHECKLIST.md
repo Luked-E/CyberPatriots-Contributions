@@ -51,6 +51,16 @@ A comprehensive, consolidated security guide and operational checklist for Cyber
 
 ---
 
+## Other security and compliance tools:
+
+### Microsoft Security Compliance Toolkit:
+Install the LGPO.exe, baseline for your version and, policy analyzer.
+As administator in cmd Run: "{insert path}\Downloads\LGPO\LGPO_30\LGPO.exe" /b "{insert path}\Downloads\PolicyAnalyzer" 
+Select the your baseline for the rule set, and the result of LGPO.exe as the definitions.
+Inspect for differences.
+
+---
+
 ## 1.1 Settings App
 
 Access via: `Win + I` or Start Menu $\to$ **Settings**
@@ -298,6 +308,29 @@ Navigate to: `Security Settings` $\to$ `Local Policies` $\to$ `Security Options`
 - **Interactive logon: Number of previous logons to cache (in case domain controller is not available)**: Set to **0** (or 1).
 - **Interactive logon: Prompt user to change password before expiration**: **14 days** (or 5 days).
 - **Interactive logon: Display user information when the session is locked**: **Do not display user information**.
+
+#### Network acess and security
+- Microsoft network server: Digitally sign communications (always): Enabled.
+- Microsoft network server: Digitally sign communications (if client agrees): Enabled.
+- Microsoft network client: Digitally sign communications (always): Enabled
+- Microsoft network client: Digitally sign communications (if server agrees): Enabled.
+- Microsoft network client: Send unencrypted password to third-party SMB servers: Disabled.
+- Microsoft network server: Disconnect clients when logon hours expire: Enabled.
+- Network access: Allow anonymous SID/Name translation: Disabled.
+- Network access: Do not allow anonymous enumeration of SAM accounts: Enabled.
+- Network access: Do not allow anonymous enumeration of SAM accounts and shares: Enabled.
+- Network access: Do not allow storage of passwords and credentials for network authentication: Enabled.
+- Network access: Let Everyone permissions apply to anonymous users: Disabled.
+- Network access: Named Pipes that can be accessed anonymously: Enable setting, leave string box completely blank.
+- Network access: Remotely accessible registry paths: Enable setting, leave string box completely blank.
+- Network access: Remotely accessible registry paths and sub-paths: Enable setting, leave string box completely blank.
+- Network access: Restrict anonymous access to Named Pipes and Shares: Enabled.
+- Network access: Shares that can be accessed anonymously: Set to None / Null.
+- Network access: Sharing and security model for local accounts: Classic - local users authenticate as themselves.
+- Network security: Do not store LAN Manager hash value on next password change: Enabled.
+- Network security: LAN Manager authentication level: Send NTLMv2 responses only. Refuse LM & NTLM.
+- Network security: Minimum session security for NTLM SSP based clients: Enable all 4 options (Require NTLMv2, 128-bit encryption).
+- Network security: Minimum session security for NTLM SSP based servers: Enable all 4 options (Require NTLMv2, 128-bit encryption).
 
 #### Recovery Console & Shutdown
 - **Recovery console: Allow automatic administrative logon**: **Disabled**.
@@ -779,18 +812,7 @@ Get-SmbOpenFile | Format-Table -AutoSize
 
 ## 1.11 File System, Drive Security & Prohibited Media Files
 
-### 1. Root Drive Permissions & System Directories
-- **Path**: `C:\` $\to$ Right-click $\to$ `Properties` $\to$ `Security` tab.
-- **Rules**:
-  - Restrict access control on root drive.
-  - Inspect `C:\Windows\System32`: Remove `Everyone: Full Control`.
-  - Ensure only `SYSTEM` and `Administrators` have Full Control.
-  - Review permissions using `icacls`:
-    ```cmd
-    icacls "C:\Windows\System32" /verify
-    ```
-
-### 2. Operating System File Integrity Repair (SFC & DISM)
+### 1. Operating System File Integrity Repair (SFC & DISM)
 ```cmd
 sfc /scannow
 DISM /Online /Cleanup-Image /RestoreHealth
@@ -798,12 +820,12 @@ DISM /Online /Cleanup-Image /RestoreHealth
 *(Repairs corrupted system files, system DLLs, and broken firewall/auditing providers altered by rootkits).*
 
 
-### 3. Hosts File Cleansing
+### 2. Hosts File Cleansing
 - **Location**: `C:\Windows\System32\drivers\etc\hosts`
 - **Inspection**: Open file with Notepad as Administrator.
 - **Action**: Remove malicious redirections that redirect antivirus update servers, Microsoft URLs, or search engines to loopback or rogue IP addresses. Retain only default localhost entries (`127.0.0.1 localhost`).
 
-### 4. Prohibited Media Files Searching & Deletion
+### 3. Prohibited Media Files Searching & Deletion
 Search through drive for unauthorized audio, video, picture, and game files (`.mp3`, `.mp4`, `.mov`, `.avi`, `.png`, `.jpg`, `.gif`, etc.):
 ```cmd
 dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
@@ -811,7 +833,7 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
 > [!CAUTION]
 > **Forensics Question Warning**: Sometimes a media or text file contains the answer to a forensics question! Always copy/read forensics answer candidates before deleting files. Once answers are submitted and verified, delete unauthorized media files.
 
-### 5. Hunt and Remove NTFS Alternate Data Streams (ADS)
+### 4. Hunt and Remove NTFS Alternate Data Streams (ADS)
 - **Command Line (Admin)**:
   ```cmd
   dir /R C:\Users\
@@ -826,7 +848,7 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
   ```
 - **Security Justification**: Adversaries attach hidden executables to benign files using alternate streams (e.g., `calc.txt:backdoor.exe`), hiding malware from standard Explorer views.
 
-### 6. Audit Unattended Setup & Sysprep Passwords
+### 5. Audit Unattended Setup & Sysprep Passwords
 - **PowerShell (Admin) Command**:
   ```powershell
   $answerFiles = @(
@@ -844,7 +866,7 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
   ```
 - **Remediation**: Record valid credentials for forensics question verification, then delete the answer files or scrub plain-text XML password tags.
 
-### 7. Verify Accessibility Binaries Against Sticky Keys Backdoors
+### 6. Verify Accessibility Binaries Against Sticky Keys Backdoors
 - **PowerShell (Admin) Audit**:
   ```powershell
   $cmdHash = (Get-FileHash C:\Windows\System32\cmd.exe).Hash
@@ -954,34 +976,7 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
   net share <shareName> /delete
   ```
 
-### 3. SMB Security Options (Local Security Policy)
-Navigate to: `secpol.msc` $\to$ `Security Settings` $\to$ `Local Policies` $\to$ `Security Options`:
-
-| Policy Name | Hardened Value |
-| :--- | :--- |
-| **Microsoft network server: Digitally sign communications (always)** | **Enabled** |
-| **Microsoft network server: Digitally sign communications (if client agrees)** | **Enabled** |
-| **Microsoft network client: Digitally sign communications (always)** | **Disabled** (or Enabled if all servers support it) |
-| **Microsoft network client: Digitally sign communications (if server agrees)** | **Enabled** |
-| **Microsoft network client: Send unencrypted password to third-party SMB servers** | **Disabled** |
-| **Microsoft network server: Disconnect clients when logon hours expire** | **Enabled** |
-| **Network access: Allow anonymous SID/Name translation** | **Disabled** |
-| **Network access: Do not allow anonymous enumeration of SAM accounts** | **Enabled** |
-| **Network access: Do not allow anonymous enumeration of SAM accounts and shares** | **Enabled** |
-| **Network access: Do not allow storage of passwords and credentials for network authentication** | **Enabled** |
-| **Network access: Let Everyone permissions apply to anonymous users** | **Disabled** |
-| **Network access: Named Pipes that can be accessed anonymously** | **Enable setting, leave string box completely blank** |
-| **Network access: Remotely accessible registry paths** | **Enable setting, leave string box completely blank** |
-| **Network access: Remotely accessible registry paths and sub-paths** | **Enable setting, leave string box completely blank** |
-| **Network access: Restrict anonymous access to Named Pipes and Shares** | **Enabled** |
-| **Network access: Shares that can be accessed anonymously** | **Set to None / Null** |
-| **Network access: Sharing and security model for local accounts** | **Classic - local users authenticate as themselves** |
-| **Network security: Do not store LAN Manager hash value on next password change** | **Enabled** |
-| **Network security: LAN Manager authentication level** | **Send NTLMv2 responses only. Refuse LM & NTLM** |
-| **Network security: Minimum session security for NTLM SSP based clients** | **Enable all 4 options** (Require NTLMv2, 128-bit encryption) |
-| **Network security: Minimum session security for NTLM SSP based servers** | **Enable all 4 options** (Require NTLMv2, 128-bit encryption) |
-
-### 4. Enforce SMBv3 Encryption
+### 3. Enforce SMBv3 Encryption
 - **PowerShell (Admin) Command**:
   ```powershell
   Set-SmbServerConfiguration -EncryptData $true -Force
@@ -989,12 +984,12 @@ Navigate to: `secpol.msc` $\to$ `Security Settings` $\to$ `Local Policies` $\to$
   ```
 - **Security Justification**: Protects network file transfers against packet sniffing and man-in-the-middle tampering over local subnets.
 
-### 5. Mitigate SMBGhost (CVE-2020-0796) Compression Vulnerability
+### 4. Mitigate SMBGhost (CVE-2020-0796) Compression Vulnerability
 - **Path**: `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters`
 - **Value Name**: `DisableCompression` (REG_DWORD) $\to$ Value: `1`.
 - **Security Justification**: Blocks remote pre-authentication code execution in SMBv3 compression on unpatched Windows 10 versions 1903/1909 and Server 2019. *(Note: Microsoft provides no GUI or cmdlet alternative for disabling SMB compression)*.
 
-### 6. Restrict SMB Ports on External / Public Interfaces
+### 5. Restrict SMB Ports on External / Public Interfaces
 - **Path (Windows Defender Firewall GUI)**:
   - Open `wf.msc` $\to$ Inbound Rules.
   - Locate rules named **File and Printer Sharing (SMB-In)**.
@@ -1617,7 +1612,7 @@ Scan installed programs list and **Uninstall** unauthorized utilities:
   - `Rejetto HttpFileServer` (`HFS 2.3x`)
   - `WinHTTPTrack`
 - **Entertainment, Media & Cloud Sync**:
-  - Video games & game launchers (e.g., Steam, Riot, Epic, `Games Games Games`)
+  - Video games & game launchers (e.g., Steam, Riot, Epic, `Games`)
   - `iTunes`, `Bonjour`, `Apple Software Update`, `Apple Mobile Device Support`
   - `Jellyfin Media Player`
   - `Google Drive`, `Dropbox`

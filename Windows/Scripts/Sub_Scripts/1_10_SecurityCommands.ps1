@@ -23,9 +23,7 @@ Set-RegValue "$psPolicy\Transcription"             'EnableTranscripting'      1
 Invoke-Step '$PSVersionTable.PSVersion' { $PSVersionTable.PSVersion | Out-Host }
 
 # 6. Execution policy
-Invoke-Step 'Set-ExecutionPolicy RemoteSigned -Scope LocalMachine' {
-    Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
-}
+Set-RegValue -Path 'HKLM:\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell' -Name 'ExecutionPolicy' -Value 'RemoteSigned' -Type 'String'
 Invoke-Step 'Get-ExecutionPolicy -List' { Get-ExecutionPolicy -List | Out-Host }
 
 # 7. DNS cache forensics, then flush

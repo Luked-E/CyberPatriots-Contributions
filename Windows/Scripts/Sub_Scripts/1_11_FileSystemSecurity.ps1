@@ -15,7 +15,6 @@ Assert-AdminPrivileges
 Write-Host "[*] Applying file system, drive security & prohibited media hardening for $WindowsVersion..." -ForegroundColor Cyan
 
 $ErrorActionPreference = 'Stop'
-$Drive = "$env:SystemDrive\"
 
 # Recursive file enumeration that logs (instead of hiding) access errors.
 function Get-FilesLogged {
@@ -30,20 +29,8 @@ function Get-FilesLogged {
     $items
 }
 
-# 1. Root drive & System32 permissions: remove Everyone (S-1-1-0) grants, then show ACLs for review
-foreach ($path in $Drive, "$env:SystemRoot\System32") {
-    Invoke-Step "icacls `"$path`" /remove:g *S-1-1-0" {
-        try {
-            icacls $path /remove:g "*S-1-1-0" 2>&1 | Out-Null
-        } catch {
-            Write-Host "[!] Note: Could not fully strip Everyone from $path (Protected System ACL)" -ForegroundColor Yellow
-        }
-    }
-    Invoke-Step "icacls `"$path`"" { icacls $path | Out-Host }
-}
-
     # 2. System file integrity repair (DISM first so SFC has a healthy component store)
-if (&SystemRepair -eq "Enabled") {
+if ($SystemRepair -eq "Enabled") {
     Invoke-Step 'DISM /Online /Cleanup-Image /RestoreHealth' { DISM /Online /Cleanup-Image /RestoreHealth | Out-Host }
     Invoke-Step 'sfc /scannow' { sfc /scannow | Out-Host }
 }
