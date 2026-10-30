@@ -175,14 +175,6 @@
           "script_path": "Sub_Scripts\\2_2_WindowsFileSharing.ps1",
           "options": [
             {
-              "name": "SMB1State",
-              "flag": "-SMB1State",
-              "type": "select",
-              "choices": ["Disabled", "Enabled"],
-              "default": "Disabled",
-              "description": "SMBv1 protocol/feature state (enable only if the README requires legacy SMB)"
-            },
-            {
               "name": "SMBCompression",
               "flag": "-SMBCompression",
               "type": "select",
