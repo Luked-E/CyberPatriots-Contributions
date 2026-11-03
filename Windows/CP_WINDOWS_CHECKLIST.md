@@ -122,13 +122,6 @@ Access via: `Win + I` or Start Menu $\to$ **Settings**
     - **"Allow Clipboard synchronization across devices"** $\to$ Set to **Disabled**.
 - **Security Justification**: Clipboard history stores copied strings (including credentials and tokens) in memory and potentially syncs unencrypted paste buffers to cloud profiles.
 
-### 8. Modern Remote Desktop Toggle Verification
-- **Path (Settings GUI)**:
-  - `Settings` $\to$ `System` $\to$ `Remote Desktop`.
-  - If RDP is **NOT authorized**: Verify toggle is **Off**; if On, toggle it to **Off** and confirm.
-  - If RDP is **REQUIRED**: Toggle to **On**, expand settings, and ensure **"Require computers to use Network Level Authentication (NLA) to connect"** is checked.
-- **Security Justification**: In Windows 10/11, toggling RDP in `sysdm.cpl` can sometimes leave the modern UWP Settings toggle out of sync.
-
 ---
 
 ## 1.2 Control Panel
@@ -255,151 +248,212 @@ Navigate to: `Security Settings` $\to$ `Local Policies` $\to$ `Audit Policy`
 
 ### 4. Advanced Audit Policy Configuration
 Navigate to: `Security Settings` $\to$ `Advanced Audit Policy Configuration` $\to$ `System Audit Policies - Local Group Policy Object`
-- Set **Success and Failure** for all subcategories, paying particular attention to:
-  - `Account Logon` $\to$ Audit Credential Validation: **Success, Failure**
-  - `Account Management` $\to$ Audit User Account Management: **Success, Failure**
-  - `Account Management` $\to$ Audit Computer Account Management: **Success, Failure** (Scores points in Comp 3 / Win 10!)
-  - `Logon/Logoff` $\to$ Audit Logon / Audit Logoff / Audit Special Logon: **Success, Failure**
-  - `Object Access` $\to$ Audit File System: **Success, Failure**
-  - `Policy Change` $\to$ Audit Audit Policy Change / Authentication Policy Change: **Success, Failure**
+- Set **Success and Failure** for all subcategories, which are:
+  - `Account Logon`
+  - `Account Management`
+  - `Detailed Tracking`
+  - `DS Access`
+  - `Logon/Logoff`
+  - `Object Access`
+  - `Policy Change`
+  - `Privilege Use`
+  - `System`
   - *(Leave Global Object Access Auditing alone unless specified)*.
 
 ### 5. Local Policies: User Rights Assignment
 Navigate to: `Security Settings` $\to$ `Local Policies` $\to$ `User Rights Assignment`
 
 | User Right | Authorized Entities Only | Entities to Remove |
-| :--- | :--- | :--- |
+| --- | --- | --- |
+| **Access Credential Manager as a trusted caller** | `(None / Empty)` | Remove ANY user or group listed here! |
 | **Access this computer from the network** | `Administrators`, `Authenticated Users` | Remove `Everyone`, `Guests`, `Users` |
-| **Allow log on locally** | `Administrators` *(and authorized console users)* | Remove unauthorized standard users / guests |
-| **Bypass traverse checking** | `Administrators` | Remove `Everyone`, `Users` |
+| **Act as part of the operating system** | `(None / Empty)` | Remove ANY user or group listed here! |
+| **Add workstations to domain** | `(None / Empty)` | Remove unauthorized entities |
+| **Adjust memory quotas for a process** | `Administrators`, `LOCAL SERVICE`, `NETWORK SERVICE` | Remove non-standard accounts |
+| **Allow log on locally** | `Administrators`, `Authenticated Users` *(and authorized console users)* | Remove unauthorized users / guests / backup operators |
+| **Allow log on through Remote Desktop Services** | `Administrators`, `Remote Desktop Users` | Remove unauthorized standard users |
+| **Back up files and directories** | `Administrators`, `Backup Operators` | Remove non-admin/non-operator users |
+| **Bypass traverse checking** | `Administrators`, `Everyone`, `Users` | Remove unauthorized standard users |
+| **Change the system time** | `Administrators`, `LOCAL SERVICE` | Remove standard `Users` |
+| **Change the time zone** | `Administrators`, `LOCAL SERVICE` | Remove standard `Users` |
+| **Create a pagefile** | `Administrators` | Remove unauthorized entities |
+| **Create a token object** | `(None / Empty)` | Remove ANY user or group listed here! |
+| **Create global objects** | `Administrators`, `LOCAL SERVICE`, `NETWORK SERVICE`, `SERVICE` | Remove unauthorized groups |
+| **Create permanent shared objects** | `(None / Empty)` | Remove ANY user or group listed here! |
+| **Create symbolic links** | `Administrators` | Remove non-admin entities |
+| **Debug programs** | `Administrators` | Remove non-admin entities |
 | **Deny access to this computer from the network** | `ANONYMOUS LOGON`, `Guest` | Ensure anonymous/guest cannot authenticate over network |
+| **Deny log on as a batch job** | `Guest` | Ensure proper deny listing |
+| **Deny log on as a service** | `Guest` | Ensure proper deny listing |
+| **Deny log on locally** | `Guest` | Ensure guest account is blocked locally |
+| **Deny log on through Remote Desktop Services** | `Guest`, `ANONYMOUS LOGON` | Ensure proper deny listing |
+| **Enable computer and user accounts to be trusted for delegation** | `(None / Empty)` | Remove ANY user or group listed here! |
 | **Force shutdown from a remote system** | `Administrators` | Remove any non-admin entity |
 | **Generate security audits** | `LOCAL SERVICE`, `NETWORK SERVICE` | Strictly limit to core service identities |
+| **Impersonate a client after authentication** | `Administrators`, `LOCAL SERVICE`, `NETWORK SERVICE`, `SERVICE` | Remove unauthorized print spooler / extra services |
+| **Increase a process working set** | `Administrators`, `LOCAL SERVICE` | Remove `Users` |
+| **Increase scheduling priority** | `Administrators` | Remove non-admin groups (e.g., Window Manager Group) |
+| **Load and unload device drivers** | `Administrators` | Remove non-admin entities |
+| **Lock pages in memory** | `(None / Empty)` *(unless there is a database or Server)* | Remove unauthorized accounts |
+| **Log on as a batch job** | `Administrators`, `Backup Operators` | Remove `Performance Log Users` or standard users |
 | **Log on as a service** | `LOCAL SYSTEM`, `LOCAL SERVICE`, `NETWORK SERVICE` | Remove unauthorized user accounts |
+| **Manage auditing and security log** | `Administrators` | Remove non-admin entities |
+| **Modify an object label** | `(None / Empty)` | Remove ANY user or group listed here! |
+| **Modify firmware environment values** | `Administrators` | Remove non-admin entities |
+| **Obtain an impersonation token for another user in the same session** | `Administrators` | Remove non-admin entities |
+| **Perform volume maintenance tasks** | `Administrators` | Remove non-admin entities |
+| **Profile single process** | `Administrators` | Remove non-admin entities |
+| **Profile system performance** | `Administrators`, `NT SERVICE\WdiServiceHost` | Remove unauthorized accounts |
+| **Remove computer from docking station** | `Administrators` | Remove `Users` |
+| **Replace a process level token** | `LOCAL SERVICE`, `NETWORK SERVICE` | Remove unauthorized entities |
 | **Restore files and directories** | `Administrators` | Remove unauthorized operators |
 | **Shut down the system** | `Administrators`, `Backup Operators` | Remove standard `Users` |
-| **Act as part of the operating system** | *(None / Empty)* | Remove ANY user or group listed here! |
+| **Synchronize directory service data** | `(None / Empty)` | Remove ANY user or group listed here! |
+| **Take ownership of files or other objects** | `Administrators` | Remove non-admin entities |
 
 ### 6. Local Policies: Security Options (Core Operating System Hardening)
 Navigate to: `Security Settings` $\to$ `Local Policies` $\to$ `Security Options`
+### Accounts
 
-#### Accounts
-- **Accounts: Administrator account status**: **Disabled** (Ensure you are logged into another authorized administrative account before disabling!).
-- **Accounts: Guest account status**: **Disabled**.
-- **Accounts: Limit local account use of blank passwords to console logon only**: **Enabled**.
+* **Accounts: Administrator account status:** Disabled
+* **Accounts: Guest account status:** Disabled
+* **Accounts: Limit local account use of blank passwords to console logon only:** Enabled
+* **Accounts: Rename administrator account:** Administrator (or a custom secure name)
+* **Accounts: Rename guest account:** Guest (or a custom secure name)
+* **Accounts: Block Microsoft accounts:** Users can't add or log on with Microsoft accounts
 
-#### Audit
-- **Audit: Shut down system immediately if unable to log security audits**: **Enabled** (or No Change if unstable).
-- **Audit: Audit the access of global system objects**: No Change.
-- **Audit: Audit the use of Backup and Restore privilege**: No Change.
+### Audit
 
-#### Devices
-- **Devices: Allow undock without having to log on**: **Disabled**.
-- **Devices: Allowed to format and eject removable media**: **Administrators**.
-- **Devices: Prevent users from installing printer drivers**: **Enabled**.
-- **Devices: Restrict CD-ROM access to locally logged-on user only**: **Enabled**.
-- **Devices: Restrict floppy access to locally logged-on user only**: **Enabled**.
+* **Audit: Shut down system immediately if unable to log security audits:** Enabled (or No Change if operational stability requires preventing unexpected shutdowns)
+* **Audit: Audit the access of global system objects:** No Change (or Enabled depending on strict compliance requirements)
+* **Audit: Audit the use of Backup and Restore privilege:** No Change (or Enabled)
+* **Audit: Force audit policy subcategory settings (Windows Vista or later):** Enabled
 
-#### Interactive Logon
-- **Interactive logon: Do not display last user name**: **Enabled**.
-- **Interactive logon: Do not require CTRL+ALT+DEL**: **Disabled** (forces CTRL+ALT+DEL before login prompt to block fake logon dialogs).
-- **Interactive logon: Message text for users attempting to log on**: Set organizational legal warning banner (e.g., *"Authorized Use Only. All activities are monitored and logged."*).
-- **Interactive logon: Message title for users attempting to log on**: Set banner title (e.g., *"WARNING: Legal Notice"*).
-- **Interactive logon: Number of previous logons to cache (in case domain controller is not available)**: Set to **0** (or 1).
-- **Interactive logon: Prompt user to change password before expiration**: **14 days** (or 5 days).
-- **Interactive logon: Display user information when the session is locked**: **Do not display user information**.
+### Devices
 
-#### Network acess and security
-- Microsoft network server: Digitally sign communications (always): Enabled.
-- Microsoft network server: Digitally sign communications (if client agrees): Enabled.
-- Microsoft network client: Digitally sign communications (always): Enabled
-- Microsoft network client: Digitally sign communications (if server agrees): Enabled.
-- Microsoft network client: Send unencrypted password to third-party SMB servers: Disabled.
-- Microsoft network server: Disconnect clients when logon hours expire: Enabled.
-- Network access: Allow anonymous SID/Name translation: Disabled.
-- Network access: Do not allow anonymous enumeration of SAM accounts: Enabled.
-- Network access: Do not allow anonymous enumeration of SAM accounts and shares: Enabled.
-- Network access: Do not allow storage of passwords and credentials for network authentication: Enabled.
-- Network access: Let Everyone permissions apply to anonymous users: Disabled.
-- Network access: Named Pipes that can be accessed anonymously: Enable setting, leave string box completely blank.
-- Network access: Remotely accessible registry paths: Enable setting, leave string box completely blank.
-- Network access: Remotely accessible registry paths and sub-paths: Enable setting, leave string box completely blank.
-- Network access: Restrict anonymous access to Named Pipes and Shares: Enabled.
-- Network access: Shares that can be accessed anonymously: Set to None / Null.
-- Network access: Sharing and security model for local accounts: Classic - local users authenticate as themselves.
-- Network security: Do not store LAN Manager hash value on next password change: Enabled.
-- Network security: LAN Manager authentication level: Send NTLMv2 responses only. Refuse LM & NTLM.
-- Network security: Minimum session security for NTLM SSP based clients: Enable all 4 options (Require NTLMv2, 128-bit encryption).
-- Network security: Minimum session security for NTLM SSP based servers: Enable all 4 options (Require NTLMv2, 128-bit encryption).
+* **Devices: Allow undock without having to log on:** Disabled
+* **Devices: Allowed to format and eject removable media:** Administrators
+* **Devices: Prevent users from installing printer drivers:** Enabled
+* **Devices: Restrict CD-ROM access to locally logged-on user only:** Enabled
+* **Devices: Restrict floppy access to locally logged-on user only:** Enabled
 
-#### Recovery Console & Shutdown
-- **Recovery console: Allow automatic administrative logon**: **Disabled**.
-- **Recovery console: Allow floppy copy and access to all drives and all folders**: **Disabled**.
-- **Shutdown: Allow system to be shut down without having to log on**: **Disabled**.
-- **Shutdown: Clear virtual memory pagefile**: **Enabled** (clears residual plain-text secrets on shutdown).
+### Domain Member
 
-#### User Account Control (UAC Group Policy Options)
-- **User Account Control: Admin Approval Mode for the Built-in Administrator account**: **Enabled**.
-- **User Account Control: Allow UIAccess applications to prompt for elevation without using the secure desktop**: **Disabled**.
-- **User Account Control: Behavior of the elevation prompt for administrators in Admin Approval Mode**: **Prompt for consent on the secure desktop** (or Prompt for credentials).
-- **User Account Control: Behavior of the elevation prompt for standard users**: **Automatically deny elevation requests** (or Prompt for credentials).
-- **User Account Control: Detect application installations and prompt for elevation**: **Enabled**.
-- **User Account Control: Only elevate executables that are signed and validated**: **Enabled** (or evaluate if testing unsigned legacy tools).
-- **User Account Control: Run all administrators in Admin Approval Mode**: **Enabled**.
-- **User Account Control: Switch to the secure desktop when prompting for elevation**: **Enabled**.
+* **Domain member: Digitally encrypt or sign secure channel data (always):** Enabled
+* **Domain member: Digitally encrypt secure channel data (when possible):** Enabled
+* **Domain member: Digitally sign secure channel data (when possible):** Enabled
+* **Domain member: Require strong (Windows 2000 or later) session key:** Enabled
+* **Domain member: Disable machine account password changes:** Disabled
+* **Domain member: Maximum machine account password age:** 30 days
 
-### 7. Enforce Explicit Deny User Rights
-- **Path (`secpol.msc` GUI)**:
-  - `Security Settings` $\to$ `Local Policies` $\to$ `User Rights Assignment`.
-  - **Deny log on locally**: Double-click $\to$ Add `Guest` $\to$ Click OK.
-  - **Deny log on through Remote Desktop Services**: Double-click $\to$ Add `Guest; ANONYMOUS LOGON` $\to$ Click OK.
-  - **Deny log on as a batch job**: Double-click $\to$ Add `Guest` $\to$ Click OK.
-  - **Deny log on as a service**: Double-click $\to$ Add `Guest` $\to$ Click OK.
-- **Alternative Method (`secedit` CLI Tool - Admin)**:
-  ```cmd
-  secedit /export /cfg C:\secpol_export.inf
-  ```
-  *Append to `C:\secpol_export.inf` under `[Privilege Rights]`*:
-  ```ini
-  [Privilege Rights]
-  SeDenyInteractiveLogonRight = *S-1-5-32-546
-  SeDenyRemoteInteractiveLogonRight = *S-1-5-32-546,*S-1-5-7
-  SeDenyBatchLogonRight = *S-1-5-32-546
-  SeDenyServiceLogonRight = *S-1-5-32-546
-  ```
-  ```cmd
-  secedit /configure /db secedit.sdb /cfg C:\secpol_export.inf /areas USER_RIGHTS
-  del C:\secpol_export.inf
-  gpupdate /force
-  ```
-- **Security Justification**: Explicit `Deny` rights override any accidental or inherited group grants, ensuring the Guest account and unauthenticated callers can never execute code locally or over RDP.
+### Interactive Logon
 
-### 8. Restrict High-Risk Administrative Privileges
-- **Path (`secpol.msc` GUI)**:
-  - In `Local Policies` $\to$ `User Rights Assignment`, ensure the following are restricted strictly to `Administrators` (remove standard users, developers, and third-party software accounts):
-    - **Debug programs (`SeDebugPrivilege`)**: Strictly `Administrators` *(Stops process memory dumping of LSASS)*.
-    - **Take ownership of files or other objects (`SeTakeOwnershipPrivilege`)**: Strictly `Administrators`.
-    - **Load and unload device drivers (`SeLoadDriverPrivilege`)**: Strictly `Administrators`.
-    - **Create symbolic links (`SeCreateSymbolicLinkPrivilege`)**: Strictly `Administrators`.
-    - **Impersonate a client after authentication (`SeImpersonatePrivilege`)**: Strictly `Administrators`, `LOCAL SERVICE`, `NETWORK SERVICE`, `SERVICE`.
-    - **Manage auditing and security log (`SeSecurityPrivilege`)**: Strictly `Administrators`.
-    - **Back up files and directories (`SeBackupPrivilege`)**: Strictly `Administrators`, `Backup Operators`.
-- **Security Justification**: `SeDebugPrivilege` allows any user process to inspect and inject code into arbitrary system memory (including dumping cleartext credentials from `lsass.exe`).
+* **Interactive logon: Do not display last user name:** Enabled
+* **Interactive logon: Do not require CTRL+ALT+DEL:** Disabled
+* **Interactive logon: Message text for users attempting to log on:** Set organizational legal warning banner (e.g., *"Authorized Use Only. All activities are monitored and logged."*)
+* **Interactive logon: Message title for users attempting to log on:** Set banner title (e.g., *"WARNING: Legal Notice"*)
+* **Interactive logon: Number of previous logons to cache (in case domain controller is not available):** 0 to 10 logons (Hardened baseline typically restricts or sets to 0/2 depending on environment)
+* **Interactive logon: Prompt user to change password before expiration:** 5 to 14 days
+* **Interactive logon: Display user information when the session is locked:** Do not display user information
+* **Interactive logon: Require Domain Controller authentication to logon:** Disabled
+* **Interactive logon: Require Windows Hello for Business or smart card:** Disabled
+* **Interactive logon: Smart card removal behavior:** No Action (or Lock Workstation)
+* **Interactive logon: Machine account lockout threshold:** 10 invalid logon attempts
+* **Interactive logon: Machine inactivity limit:** 900 seconds (15 minutes) or less
 
-### 9. Configure Machine Inactivity Screen Lockout Limit
-- **Path (`secpol.msc` GUI)**:
-  - `Security Settings` $\to$ `Local Policies` $\to$ `Security Options` $\to$ **"Interactive logon: Machine inactivity limit"**.
-  - Double-click $\to$ Check **"Define this policy setting"** $\to$ Enter **`900`** seconds (15 minutes) or **`300`** seconds (5 minutes).
-  - Click **Apply** $\to$ Click **OK**.
-- **Security Justification**: Directly forces the operating system screen lock timer via Group Policy, superseding individual user overrides.
+### Network Access and Security
 
-### 10. Block Microsoft Accounts & Anonymous Fallback
-- **Path (`secpol.msc` GUI)**:
-  - In `Local Policies` $\to$ `Security Options`:
-    - **"Accounts: Block Microsoft accounts"**: Set to **"Users cannot add or log on with Microsoft accounts"**.
-    - **"Network security: Allow LocalSystem NULL session fallback"**: Set to **Disabled**.
-    - **"Network security: Allow PKU2U authentication requests to this computer to use online identities"**: Set to **Disabled**.
-- **Security Justification**: Blocking Microsoft accounts ensures workstations rely strictly on local or domain SAM databases, preventing rogue external live/cloud credentials from bypassing local policies.
+* **Microsoft network server: Digitally sign communications (always):** Enabled
+* **Microsoft network server: Digitally sign communications (if client agrees):** Enabled (or Disabled if requiring strict enforcement)
+* **Microsoft network client: Digitally sign communications (always):** Enabled
+* **Microsoft network client: Digitally sign communications (if server agrees):** Enabled
+* **Microsoft network client: Send unencrypted password to third-party SMB servers:** Disabled
+* **Microsoft network server: Disconnect clients when logon hours expire:** Enabled
+* **Network access: Allow anonymous SID/Name translation:** Disabled
+* **Network access: Do not allow anonymous enumeration of SAM accounts:** Enabled
+* **Network access: Do not allow anonymous enumeration of SAM accounts and shares:** Enabled
+* **Network access: Do not allow storage of passwords and credentials for network authentication:** Enabled
+* **Network access: Let Everyone permissions apply to anonymous users:** Disabled
+* **Network access: Named Pipes that can be accessed anonymously:** Enabled (Leave string box completely blank)
+* **Network access: Remotely accessible registry paths:** Enabled (Leave string box completely blank)
+* **Network access: Remotely accessible registry paths and sub-paths:** Enabled (Leave string box completely blank)
+* **Network access: Restrict anonymous access to Named Pipes and Shares:** Enabled
+* **Network access: Shares that can be accessed anonymously:** None / Null
+* **Network access: Sharing and security model for local accounts:** Classic - local users authenticate as themselves
+* **Network security: Do not store LAN Manager hash value on next password change:** Enabled
+* **Network security: LAN Manager authentication level:** Send NTLMv2 responses only. Refuse LM & NTLM.
+* **Network security: Minimum session security for NTLM SSP based clients:** Require 128-bit encryption
+* **Network security: Minimum session security for NTLM SSP based servers:** Require 128-bit encryption
+* **Network security: Force logoff when logon hours expire:** Disabled (or Enabled)
+* **Network security: Restrict NTLM: Incoming NTLM traffic:** Deny all / Deny all domain accounts
+* **Network security: Restrict NTLM: NTLM authentication in this domain:** Deny all / Deny accounts
+
+### Recovery Console & Shutdown
+
+* **Recovery console: Allow automatic administrative logon:** Disabled
+* **Recovery console: Allow floppy copy and access to all drives and all folders:** Disabled
+* **Shutdown: Allow system to be shut down without having to log on:** Disabled
+* **Shutdown: Clear virtual memory pagefile:** Enabled (Recommended for high-security environments to prevent memory data remnants)
+
+### System Objects & System Cryptography
+
+* **System objects: Require case insensitivity for non-Windows subsystems:** Enabled
+* **System objects: Strengthen default permissions of internal system objects:** Enabled
+* **System cryptography: Use FIPS compliant algorithms for encryption, hashing, and signing:** Disabled (unless specifically required by federal/regulatory compliance)
+* **System settings: Use Certificate Rules on Windows Executables for Software Restriction Policies:** Disabled
+
+### User Account Control (UAC Group Policy Options)
+
+* **User Account Control: Admin Approval Mode for the Built-in Administrator account:** Enabled
+* **User Account Control: Allow UIAccess applications to prompt for elevation without using the secure desktop:** Disabled
+* **User Account Control: Behavior of the elevation prompt for administrators in Admin Approval Mode:** Prompt for consent on the secure desktop
+* **User Account Control: Behavior of the elevation prompt for standard users:** Automatically deny elevation requests
+* **User Account Control: Detect application installations and prompt for elevation:** Enabled
+* **User Account Control: Only elevate executables that are signed and validated:** Disabled (or Enabled depending on environment legacy software constraints)
+* **User Account Control: Run all administrators in Admin Approval Mode:** Enabled
+* **User Account Control: Switch to the secure desktop when prompting for elevation:** Enabled
+* **User Account Control: Virtualize file and registry write failures to per-user locations:** Enabled
+
+### Safe Alternative settings
+
+* **Audit: Shut down system immediately if unable to log security audits**
+  * **Strict Security:** Enabled
+  * **Operational Alternative:** No Change (prevents unexpected system shutdowns if logging fails)
+
+
+* **Interactive logon: Number of previous logons to cache**
+  * **Strict Security:** 0 (forces live domain controller verification)
+  * **Operational Alternative:** 10 logons (allows remote or laptop users to log in when offline/disconnected from the network)
+
+
+* **Interactive logon: Prompt user to change password before expiration**
+  * **Strict Security:** 5 days
+  * **Operational Alternative:** 14 days (gives users more time to update passwords before lockout)
+
+
+* **Microsoft network server: Digitally sign communications (always)**
+  * **Strict Security:** Enabled
+  * **Operational Alternative:** Disabled (allows older legacy clients or non-Windows network storage devices to connect)
+
+
+* **Shutdown: Clear virtual memory pagefile**
+  * **Strict Security:** Enabled (wipes residual data on shutdown, but increases shutdown times)
+  * **Operational Alternative:** Disabled (standard behavior for faster reboots)
+
+
+* **User Account Control (UAC): Behavior of the elevation prompt for administrators**
+  * **Strict Security:** Prompt for credentials on the secure desktop
+  * **Operational Alternative:** Prompt for consent on the secure desktop
+
+
+* **User Account Control (UAC): Behavior of the elevation prompt for standard users**
+  * **Strict Security:** Automatically deny elevation requests
+  * **Operational Alternative:** Prompt for credentials (allows standard users to type an admin password to run tools)
+
+
+* **User Account Control (UAC): Only elevate executables that are signed and validated**
+  * **Strict Security:** Enabled
+  * **Operational Alternative:** Disabled (prevents breaking older unsigned software or custom in-house corporate scripts)
 
 ---
 
@@ -408,9 +462,10 @@ Navigate to: `Security Settings` $\to$ `Local Policies` $\to$ `Security Options`
 Access via: `Win + R` $\to$ `lusrmgr.msc` $\to$ Enter
 
 ### 1. User Account Auditing & Remediation
+- **Standard Users**: Administrator, DefaultAccount, Guest, and WDAGUtilityAccount
 - **Review README first**: Cross-reference the users list in `lusrmgr.msc` against authorized users in the competition README.
-- **Guest Account**:
-  - Right-click `Guest` $\to$ `Properties` $\to$ Check **"Account is disabled"**.
+- **DefaultAccount, Guest, and WDAGUtilityAccount  Accounts**:
+  - Right-click `Account` $\to$ `Properties` $\to$ Check **"Account is disabled"**.
 - **Unauthorized Users**:
   - Right-click unauthorized/rogue accounts (e.g., `hamburgerman`, `romeo`, `fsociety`, `darkarmy`) $\to$ **Delete**.
 - **Authorized Accounts Configuration**:
@@ -422,62 +477,40 @@ Access via: `Win + R` $\to$ `lusrmgr.msc` $\to$ Enter
     - Uncheck **"Account is locked out"**.
 - **Resetting Passwords**:
   - Right-click user $\to$ `Set Password` $\to$ `Proceed`.
-  - Enter a complex password complying with security policy ( `C1sc0!314159???` or `CyberP12345@SVT`).
+  - Enter a complex password complying with security policy ( `C1sc0!314159@SVT` ).
 
 ### 2. Group Membership Auditing
-- **Administrators Group**:
-  - Click `Groups` $\to$ Double-click `Administrators`.
-  - Check members against README: Remove unauthorized users (e.g., demote users that should only be standard users such as `cmoss`, `jchutney`, `sjacobs`, `twellick` if specified).
-  - Select user $\to$ Click **Remove**.
-- **Backup Operators Group**:
-  - Check members: Remove users who should not have backup privileges (e.g., `dalderson`).
-- **Creating Required Groups**:
-  - `Groups` $\to$ Right-click empty area $\to$ `New Group` $\to$ Provide name and add authorized users.
-- **Preservation Rule**:
+
+ **Standard Windows Groups**:
+ - **Preservation Rule**:
   - **Do NOT delete any built-in/default Windows groups!**
 
-### 3. Audit and Disable Built-in System Utility Accounts
-- **Path (`lusrmgr.msc` GUI)**:
-  - In `Users`, locate `DefaultAccount` $\to$ Properties $\to$ Check **"Account is disabled"**.
-  - Locate `WDAGUtilityAccount` (Windows Defender Application Guard) $\to$ Properties $\to$ Check **"Account is disabled"** (unless Application Guard is active).
-- **Alternative Method (PowerShell - Admin)**:
-  ```powershell
-  Disable-LocalUser -Name "DefaultAccount" -ErrorAction SilentlyContinue
-  Disable-LocalUser -Name "WDAGUtilityAccount" -ErrorAction SilentlyContinue
-  ```
-- **Security Justification**: Attackers frequently activate dormant built-in utility accounts to create backdoor administrative accounts that evade basic user list sweeps.
+| Group Name | Description | Default / Standard Users & Members |
+| --- | --- | --- |
+| **Access Control Assistance Operators** | Members of this group can remotely query authorization attributes and permissions for resources on this computer. | None (empty by default) |
+| **Administrators** | Administrators have complete and unrestricted access to the computer/domain. | Administrator, Domain Admins (if domain-joined) |
+| **Backup Operators** | Backup Operators can override security restrictions for the sole purpose of backing up or restoring files. | None (empty by default) |
+| **Cryptographic Operators** | Members are authorized to perform cryptographic operations. | None (empty by default) |
+| **Device Owners** | Members of this group can change system-wide settings. | None (empty by default) |
+| **Distributed COM Users** | Members are allowed to launch, activate and use Distributed COM objects on this machine. | None (empty by default) |
+| **Event Log Readers** | Members of this group can read event logs from local machine. | None (empty by default) |
+| **Guests** | Guests have the same access as members of the Users group by default, except for the Guest account which is further restricted. | Guest, Domain Guests (if domain-joined) |
+| **Hyper-V Administrators** | Members of this group have complete and unrestricted access to all features of Hyper-V. | None (empty by default) |
+| **IIS_IUSRS** | Built-in group used by Internet Information Services. | IUSR |
+| **Network Configuration Operators** | Members in this group can have some administrative privileges to manage configuration of networking features. | None (empty by default) |
+| **OpenSSH Users** | Members of this group may connect to this computer using SSH. | None (empty by default) |
+| **Performance Log Users** | Members of this group may schedule logging of performance counters, enable trace providers, and collect event traces both locally and via remote access. | NT AUTHORITY\NETWORK SERVICE |
+| **Performance Monitor Users** | Members of this group can access performance counter data locally and remotely. | None (empty by default) |
+| **Power Users** | Power Users are included for backwards compatibility and possess limited administrative powers. | None (empty by default) |
+| **Remote Desktop Users** | Members of this group are granted the right to logon remotely. | None (empty by default) |
+| **Remote Management Users** | Members of this group can access WMI resources over management protocols (such as WS-Management via the Windows Remote Management service). | None (empty by default) |
+| **Replicator** | Supports file replication in a domain. | None (empty by default) |
+| **System Managed Accounts Group** | Members of this group are managed by the system. | System-managed accounts |
+| **User Mode Hardware Operators** | Members of this group may operate hardware from user mode. | None (empty by default) |
+| **Users** | Users are prevented from making accidental or intentional system-wide changes and can run most applications. | Authenticated Users, Interactive, Users, Domain Users (if domain-joined) |
 
-### 4. Audit Sensitive Auxiliary Local Groups
-- **Path (`lusrmgr.msc` GUI)**:
-  - Click `Groups` and inspect each of the following groups, removing unauthorized members:
-    - **Remote Management Users** (only authorized admins/WinRM users).
-    - **Distributed COM Users** (remove unauthorized standard users).
-    - **Event Log Readers** (ensure standard users cannot harvest logs for credentials).
-    - **Performance Log Users** & **Performance Monitor Users** (used for reconnaissance).
-    - **Cryptographic Operators** (ensure only SYSTEM / authorized admins).
-- **Alternative Method (PowerShell - Admin)**:
-  ```powershell
-  $groups = @("Remote Management Users", "Distributed COM Users", "Event Log Readers", "Performance Log Users", "Cryptographic Operators")
-  foreach ($grp in $groups) {
-      Write-Host "=== Members of $grp ===" -ForegroundColor Cyan
-      Get-LocalGroupMember -Group $grp -ErrorAction SilentlyContinue | Select-Object Name, PrincipalSource
-  }
-  ```
-- **Security Justification**: Subtly granting standard users membership in auxiliary groups preserves persistent backdoors without modifying the `Administrators` group.
-
-### 5. Automated Local User Account Security Audit via PowerShell
-- **PowerShell (Admin) Command**:
-  ```powershell
-  Get-LocalUser | Select-Object Name, Enabled, PasswordRequired, PasswordLastSet, PasswordNeverExpires, UserMayChangePassword, LastLogon, Description | Sort-Object Enabled -Descending | Format-Table -AutoSize
-  ```
-- **Remediation Script**:
-  ```powershell
-  # Force all local users to require passwords and enforce expiration
-  Get-LocalUser | Where-Object { $_.Name -ne "DefaultAccount" -and $_.Name -ne "WDAGUtilityAccount" } | ForEach-Object {
-      Set-LocalUser -Name $_.Name -PasswordNeverExpires $false
-  }
-  ```
-- **Security Justification**: Instantly identifies dormant accounts, accounts with passwords set to never expire, accounts with blank passwords, or accounts that have never logged on.
+- **Creating Required Groups**:
+  - `Groups` $\to$ Right-click empty area $\to$ `New Group` $\to$ Provide name and add authorized users.
 
 ---
 
@@ -999,7 +1032,6 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
 ---
 
 ## 2.3 Remote Desktop Services (RDP)
-
 
 ### 1. Modern Remote Desktop Toggle Verification
 - **Path (Settings GUI)**:

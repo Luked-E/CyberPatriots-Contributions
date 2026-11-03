@@ -48,7 +48,7 @@ function Write-ErrorLog {
         foreach ($frame in $callStack) {
             $scriptPath = $frame.ScriptName
             if (-not [string]::IsNullOrEmpty($scriptPath) -and 
-                $scriptPath -notlike "*EngineUtils.psd1" -and 
+                $scriptPath -notlike "*EngineUtils.ps*1" -and
                 $scriptPath -notlike "*Engine.ps1") {
                 
                 $ScriptName = Split-Path -Leaf $scriptPath
@@ -80,6 +80,27 @@ function Write-WarningLog {
         [Parameter(Mandatory = $false)]
         [string]$ScriptName = (Get-PSCallStack)[0].Command
     )
+
+    if ([string]::IsNullOrEmpty($ScriptName)) {
+        $callStack = Get-PSCallStack
+        
+        # Look through stack frames for a script file that is NOT this module file itself
+        foreach ($frame in $callStack) {
+            $scriptPath = $frame.ScriptName
+            if (-not [string]::IsNullOrEmpty($scriptPath) -and 
+                $scriptPath -notlike "*EngineUtils.ps*1" -and
+                $scriptPath -notlike "*Engine.ps1") {
+                
+                $ScriptName = Split-Path -Leaf $scriptPath
+                break
+            }
+        }
+        
+        # Fallback if no specific script frame is found
+        if ([string]::IsNullOrEmpty($ScriptName)) {
+            $ScriptName = "UnknownScript"
+        }
+    }
 
     Write-Host "    [!] $Message" -ForegroundColor Red
     $logLine = "{0} [Warning] [{1}] [{2}] {3}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $ScriptName, $WindowsVersion, $Message
