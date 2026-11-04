@@ -1,0 +1,29 @@
+Authorized Administrators and Users
+
+Authorized Administrators:
+chowe (you)
+	password: Cyb3rCont3st
+josiah
+	password: Sup3rHum4n16
+isabella
+	password: RadioAc7!V65
+rafael
+	password: goober
+
+Authorized Users:
+
+		
+hayes
+nia
+simone
+foster
+tina
+edwards
+darius
+peterson
+turner
+ethan
+esther
+wyatt
+
+Competition Guidelines

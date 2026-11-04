@@ -33,15 +33,120 @@ Import-Module -Name $ModulePath -Force -ArgumentList $WindowsVersion
 Assert-AdminPrivileges
 
 Write-Host "[*] Configuring local users and groups for $WindowsVersion..." -ForegroundColor Cyan
-
 # ---------------------------------------------------------------------------
-# Authorized accounts (edit these to match the competition README)
+# Authorized accounts & Player Validation (Parsed dynamically from README)[cite: 1, 2]
 # ---------------------------------------------------------------------------
-$Administrators = @("Administrator")   # Authorized administrators
+$Administrators = @("Administrator")   # Authorized administrators baseline
 $StandardUsers  = @()                  # Authorized standard users
+$PlayerName     = $null                # Designated player account from (you) tag
 
-# The account running this script is always treated as authorized so it cannot lock itself out
-$CurrentUser     = $env:USERNAME
+$ReadmePath = Join-Path $ParentDir "users.txt"
+
+if ($ReadmePath -and (Test-Path -LiteralPath $ReadmePath)) {
+    Write-Host "[*] Parsing authorized accounts and player tag from: $ReadmePath" -ForegroundColor Cyan
+    try {
+        $FileContent = Get-Content -LiteralPath $ReadmePath -ErrorAction Stop
+        $Section = $null
+        $ParsedAdmins = @()
+        $ParsedUsers = @()
+
+        foreach ($line in $FileContent) {
+            $trimmed = $line.Trim()
+
+            # Identify section headers
+            if ($trimmed -match '^Authorized Administrators:') {
+                $Section = 'Admins'
+                continue
+            }
+            elseif ($trimmed -match '^Authorized Users:') {
+                $Section = 'Users'
+                continue
+            }
+            elseif ($trimmed -match '^Competition Guidelines' -or $trimmed -match '^---') {
+                $Section = $null
+                continue
+            }
+
+            # Skip empty lines or password lines
+            if (-not $trimmed) { continue }
+            if ($trimmed -match '^password\s*:') { continue }
+
+            # Check if this line designates the player account with '(you)'[cite: 2]
+            if ($trimmed -match '\(you\)') {
+                $PlayerName = ($trimmed -replace '\s*\(.*\)\s*$', '').Trim()
+            }
+
+            # Extract clean username (removes annotations)
+            $userName = ($trimmed -replace '\s*\(.*\)\s*$', '').Trim()
+
+            if ($userName) {
+                if ($Section -eq 'Admins') {
+                    if ($ParsedAdmins -notcontains $userName) {
+                        $ParsedAdmins += $userName
+                    }
+                }
+                elseif ($Section -eq 'Users') {
+                    if ($ParsedUsers -notcontains $userName) {
+                        $ParsedUsers += $userName
+                    }
+                }
+            }
+        }
+
+        if ($ParsedAdmins.Count -gt 0) {
+            $Administrators = @($Administrators + $ParsedAdmins) | Select-Object -Unique
+        }
+        if ($ParsedUsers.Count -gt 0) {
+            $StandardUsers = @($ParsedUsers) | Select-Object -Unique
+        }
+
+        Write-Host "[+] Loaded $( $ParsedAdmins.Count ) authorized administrator(s) and $( $ParsedUsers.Count ) standard user(s) from README." -ForegroundColor Green
+    } catch {
+        Write-WarningLog -Message "Failed to parse README file at '$ReadmePath': $($_.Exception.Message)" -ScriptName $ThisScript
+        Write-Host "[-] Failed to parse README file. Using default/fallback user lists." -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "[*] No authorized users text file found. Using default script lists." -ForegroundColor Yellow
+}
+
+# ---------------------------------------------------------------------------
+# Player Validation Check: Abort if current user doesn't match the (you) tag[cite: 2]
+# ---------------------------------------------------------------------------
+$CurrentUser = $env:USERNAME
+
+# ---------------------------------------------------------------------------
+# Excerpt: Print Current User and Extracted User Lists
+# ---------------------------------------------------------------------------
+Write-Host "==================================================" -ForegroundColor Cyan
+Write-Host "             USER file SUMMARY                   " -ForegroundColor Cyan
+Write-Host "==================================================" -ForegroundColor Cyan
+
+Write-Host "Current Logged-In User : " -NoNewline; Write-Host "$CurrentUser" -ForegroundColor Yellow
+if ($PlayerName) {
+    Write-Host "Identified Player Tag  : " -NoNewline; Write-Host "$PlayerName" -ForegroundColor Green
+}
+
+Write-Host "`nAuthorized Administrators ($( $Administrators.Count )): " -ForegroundColor Cyan
+foreach ($admin in $Administrators) {
+    Write-Host "  [Admin] $admin" -ForegroundColor White
+}
+
+Write-Host "`nAuthorized Standard Users ($( $StandardUsers.Count )): " -ForegroundColor Cyan
+if ($StandardUsers.Count -gt 0) {
+    foreach ($user in $StandardUsers) {
+        Write-Host "  [User]  $user" -ForegroundColor White
+    }
+} else {
+    Write-Host "  (None)" -ForegroundColor DarkGray
+}
+Write-Host "==================================================" -ForegroundColor Cyan
+
+if ($PlayerName -and ($CurrentUser -ne $PlayerName)) {
+    $AbortMessage = "ABORT: Current logged-in user ('$CurrentUser') does not match the designated player account ('$PlayerName') found in the README[cite: 2]."
+    Write-ErrorLog -Message $AbortMessage -ScriptName $ThisScript
+    throw $AbortMessage
+}
+
 $AuthorizedUsers = $Administrators + $StandardUsers + $CurrentUser
 $AuthorizedAdmins = $Administrators + $CurrentUser
 
@@ -139,7 +244,22 @@ foreach ($u in Get-LocalUser | Where-Object { $_.Enabled -and $_.SID.Value -notm
 }
 
 # ---------------------------------------------------------------------------
-# 5. Report members of sensitive groups and all local users
+# 5. Set default password for all users except the player account
+# ---------------------------------------------------------------------------
+foreach ($u in Get-LocalUser | Where-Object { $_.Enabled -and $_.SID.Value -notmatch '-(501|503|504)$' }) {
+    if (($u.Name -eq $PlayerName) -or ($u.Name -eq $CurrentUser)) {
+        Write-Host "[*] Skipping password change for Player account: $($u.Name)" -ForegroundColor DarkGray
+        continue
+    }
+
+    Invoke-Step "Change password for user $($u.Name)" {
+        $SecurePassword = "C1sc0!314159@SVT" | ConvertTo-SecureString -AsPlainText -Force
+        Set-LocalUser -SID $u.SID -Password $SecurePassword
+    }
+}
+
+# ---------------------------------------------------------------------------
+# 6. Report members of sensitive groups and all local users
 #    (logged with Write-WarningLog so they land in the log file for review)
 # ---------------------------------------------------------------------------
 $SensitiveGroups = @(
