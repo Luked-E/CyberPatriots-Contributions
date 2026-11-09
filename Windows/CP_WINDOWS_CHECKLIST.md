@@ -227,11 +227,11 @@ Navigate to: `Security Settings` $\to$ `Account Policies` $\to$ `Password Policy
 ### 2. Account Policies: Account Lockout Policy
 Navigate to: `Security Settings` $\to$ `Account Policies` $\to$ `Account Lockout Policy`
 
-| Policy Name | Recommended Setting | Alternative Setting | Notes |
-| :--- | :--- | :--- | :--- |
-| **Account lockout duration** | **30 minutes** | 10 minutes | Time an account stays locked |
-| **Account lockout threshold** | **5 invalid logon attempts** | 20 attempts | Mitigates brute-force/dictionary attacks |
-| **Reset account lockout counter after** | **30 minutes** | 30 minutes | Must match or be less than lockout duration |
+| Policy Name | Recommended Setting | Notes |
+| :--- | :--- | :--- |
+| **Account lockout duration** | **30 minutes** | Time an account stays locked |
+| **Account lockout threshold** | **5 invalid logon attempts** | Mitigates brute-force/dictionary attacks |
+| **Reset account lockout counter after** | **30 minutes** | Must match or be less than lockout duration |
 
 ### 3. Local Policies: Audit Policy
 Navigate to: `Security Settings` $\to$ `Local Policies` $\to$ `Audit Policy`
