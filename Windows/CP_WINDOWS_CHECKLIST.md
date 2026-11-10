@@ -24,6 +24,9 @@ A comprehensive, consolidated security guide and operational checklist for Cyber
   - [2.3 Remote Desktop Services (RDP)](#remote-desktop-services-rdp)
   - [2.4 Web Browsers (Chrome, Firefox, Internet Explorer, Edge)](#web-browsers-chrome-firefox-internet-explorer-edge)
   - [2.5 Web Servers (IIS, Apache, Abyss Web Server)](#web-servers-iis-apache-abyss-web-server)
+    - [2.5.1 Internet Information Services (IIS)](#internet-information-services-iis)
+    - [2.5.2 Apache HTTP Server](#apache-http-server)
+    - [2.5.3 Abyss Web Server](#abyss-web-server)
   - [2.6 Database Servers (Microsoft SQL Server & MariaDB / MySQL)](#database-servers-microsoft-sql-server--mariadb--mysql)
   - [2.7 Remote Administration & Management (WinRM, PowerShell Remoting, Remote Registry)](#remote-administration--management-winrm-powershell-remoting-remote-registry)
   - [2.8 Email & Messaging Servers (SMTP)](#email--messaging-servers-smtp)
@@ -1156,7 +1159,9 @@ Navigate to: `gpedit.msc` $\to$ `Computer Configuration` $\to$ `Administrative T
 
 ## 2.5 Web Servers (IIS, Apache, Abyss Web Server)
 
-### 1. Internet Information Services (IIS Manager)
+### 2.5.1 Internet Information Services (IIS)
+
+#### 1. IIS Manager Hardening
 Access via: `Win + R` $\to$ `inetmgr` $\to$ Enter
 
 - **Bindings & Ports**:
@@ -1185,7 +1190,20 @@ Access via: `Win + R` $\to$ `inetmgr` $\to$ Enter
 - **Remove IIS7 Metabase Compatibility Feature**:
   - Remove via Roles & Features if legacy IIS 6 management compatibility is not required.
 
-### 2. Apache HTTP Server (e.g., C:\Apache24)
+#### 2. IIS Request Filtering and Security Response Headers
+- **Path (IIS Manager GUI - `inetmgr`)**:
+  - Select Site $\to$ Double-click **Request Filtering**:
+    - **HTTP Verbs Tab**: Click **Deny Verb...** in right pane $\to$ Deny `TRACE`, `TRACK`, `DEBUG`.
+    - **File Name Extensions Tab**: Click **Deny File Name Extension...** $\to$ Add `.bak`, `.inc`, `.old`, `.sql`, `.config`.
+  - Select Site $\to$ Double-click **HTTP Response Headers**:
+    - Add `X-Frame-Options`: `SAMEORIGIN` (prevents Clickjacking).
+    - Add `X-Content-Type-Options`: `nosniff` (prevents MIME confusion).
+    - Add `Strict-Transport-Security`: `max-age=31536000; includeSubDomains` (enforces HSTS).
+- **Security Justification**: Hardens web endpoints against common OWASP Top 10 attacks, clickjacking, and information disclosure.
+
+### 2.5.2 Apache HTTP Server
+
+#### 1. Apache HTTP Server Configuration (e.g., C:\Apache24)
 - **Install Location**: Ensure binary remains at designated path (e.g., `C:\Apache24`).
 - **Configuration File**: `C:\Apache24\conf\httpd.conf`
   - Remove or comment out default test pages (`test.php`, default info pages).
@@ -1209,21 +1227,7 @@ Access via: `Win + R` $\to$ `inetmgr` $\to$ Enter
     - Grant Full Control only to `SYSTEM` and `Administrators`.
   - Enable Object Access auditing in Group Policy for `C:\Apache24\htdocs`.
 
-### 3. Abyss Web Server
-- **Unauthorized Software Warning**: If Abyss Web Server is found running on a workstation/server where it was not authorized by the README $\to$ Stop service and uninstall completely via Control Panel.
-
-### 4. IIS Request Filtering and Security Response Headers
-- **Path (IIS Manager GUI - `inetmgr`)**:
-  - Select Site $\to$ Double-click **Request Filtering**:
-    - **HTTP Verbs Tab**: Click **Deny Verb...** in right pane $\to$ Deny `TRACE`, `TRACK`, `DEBUG`.
-    - **File Name Extensions Tab**: Click **Deny File Name Extension...** $\to$ Add `.bak`, `.inc`, `.old`, `.sql`, `.config`.
-  - Select Site $\to$ Double-click **HTTP Response Headers**:
-    - Add `X-Frame-Options`: `SAMEORIGIN` (prevents Clickjacking).
-    - Add `X-Content-Type-Options`: `nosniff` (prevents MIME confusion).
-    - Add `Strict-Transport-Security`: `max-age=31536000; includeSubDomains` (enforces HSTS).
-- **Security Justification**: Hardens web endpoints against common OWASP Top 10 attacks, clickjacking, and information disclosure.
-
-### 5. Apache `.htaccess` Override Restrictions & Slowloris Mitigation
+#### 2. Apache `.htaccess` Override Restrictions & Slowloris Mitigation
 - **Configuration Directives (`C:\Apache24\conf\httpd.conf`)**:
   ```apache
   <Directory "C:/Apache24/htdocs">
@@ -1237,6 +1241,11 @@ Access via: `Win + R` $\to$ `inetmgr` $\to$ Enter
   KeepAliveTimeout 5
   ```
 - **Security Justification**: Prevents unauthorized web developers or attackers from modifying server settings via hidden `.htaccess` files and mitigates Slowloris DoS attacks.
+
+### 2.5.3 Abyss Web Server
+
+#### 1. Remove Unauthorized Abyss Web Server
+- **Unauthorized Software Warning**: If Abyss Web Server is found running on a workstation/server where it was not authorized by the README $\to$ Stop service and uninstall completely via Control Panel.
 
 ---
 

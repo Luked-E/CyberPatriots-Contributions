@@ -225,10 +225,10 @@
           ]
         },
         {
-          "id": "web_servers",
-          "title": "Web Servers (IIS, Apache)",
-          "description": "Hardens IIS and Apache: bindings, logging, default content, authentication, request filtering, security headers, permissions and auditing. Optionally keeps either web server running.",
-          "script_path": "Sub_Scripts\\2_5_WebServers.ps1",
+          "id": "web_server_iis",
+          "title": "Web Servers: IIS (Internet Information Services)",
+          "description": "Stops and disables IIS, or hardens it: bindings, W3C logging, default content, authentication, ISAPI/handlers, WebDAV, app pool identities, request filtering and security headers.",
+          "script_path": "Sub_Scripts\\2_5_1_IIS.ps1",
           "options": [
             {
               "name": "IISState",
@@ -237,7 +237,15 @@
               "choices": ["Disabled", "Enabled"],
               "default": "Disabled",
               "description": "IIS (W3SVC): Disabled stops and disables it; Enabled keeps it running and hardens it"
-            },
+            }
+          ]
+        },
+        {
+          "id": "web_server_apache",
+          "title": "Web Servers: Apache HTTP Server",
+          "description": "Stops and disables Apache, or hardens it: httpd.conf directives (no indexes, AllowOverride None, TraceEnable, banners, timeouts), test pages, htdocs permissions and auditing.",
+          "script_path": "Sub_Scripts\\2_5_2_Apache.ps1",
+          "options": [
             {
               "name": "ApacheState",
               "flag": "-ApacheState",
@@ -245,6 +253,22 @@
               "choices": ["Disabled", "Enabled"],
               "default": "Disabled",
               "description": "Apache (C:\\Apache24): Disabled stops and disables it; Enabled keeps it running and hardens httpd.conf"
+            }
+          ]
+        },
+        {
+          "id": "web_server_abyss",
+          "title": "Web Servers: Abyss Web Server",
+          "description": "Stops and disables an unauthorized Abyss Web Server (service and tray process) and flags it for uninstall via Programs and Features.",
+          "script_path": "Sub_Scripts\\2_5_3_AbyssWebServer.ps1",
+          "options": [
+            {
+              "name": "AbyssState",
+              "flag": "-AbyssState",
+              "type": "select",
+              "choices": ["Disabled", "Enabled"],
+              "default": "Disabled",
+              "description": "Abyss Web Server: Disabled stops and disables it and flags it for uninstall; Enabled leaves it untouched"
             }
           ]
         },
