@@ -1,16 +1,15 @@
-https://akshayrohatgi.com/blog/posts/How-To-Win-CyberPatriot/
+
 
 ### Gameplan
-    README
-    Forensic Questions
-    Initialize script and fix potential issues that may affect script features (e.g., reset APT repositories, removed immutable permissions, reset $PATH variable, etc.)
-    Baselining
-    Users & Groups
-    Backdoor & Malware hunting
-    Updates
-    Reboot to apply kernel updates
-    Package and service management
-    System hardening (PAM, Sysctl, Sudoers, Polkit, Bootloader, etc.)
-    Critical Service security
-    File and directory permissions
-    Point Scrounging
+
+<br>Forensic Questions
+<br>Initialize script and fix potential issues that may affect script features (e.g., reset APT repositories, removed immutable permissions, reset $PATH variable, etc.)
+<br>Backdoor & Malware hunting
+<br>Updates
+<br>Reboot to apply kernel updates
+<br>Package and service management
+<br>System hardening (PAM, Sysctl, Sudoers, Polkit, Bootloader, etc.)
+<br>Critical Service security
+<br>File and directory permissions
+<br>Point Scrounging
+<br>https://akshayrohatgi.com/blog/posts/How-To-Win-CyberPatriot/
