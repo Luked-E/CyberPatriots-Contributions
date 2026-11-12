@@ -858,15 +858,7 @@ DISM /Online /Cleanup-Image /RestoreHealth
 - **Inspection**: Open file with Notepad as Administrator.
 - **Action**: Remove malicious redirections that redirect antivirus update servers, Microsoft URLs, or search engines to loopback or rogue IP addresses. Retain only default localhost entries (`127.0.0.1 localhost`).
 
-### 3. Prohibited Media Files Searching & Deletion
-Search through drive for unauthorized audio, video, picture, and game files (`.mp3`, `.mp4`, `.mov`, `.avi`, `.png`, `.jpg`, `.gif`, etc.):
-```cmd
-dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
-```
-> [!CAUTION]
-> **Forensics Question Warning**: Sometimes a media or text file contains the answer to a forensics question! Always copy/read forensics answer candidates before deleting files. Once answers are submitted and verified, delete unauthorized media files.
-
-### 4. Hunt and Remove NTFS Alternate Data Streams (ADS)
+### 3. Hunt and Remove NTFS Alternate Data Streams (ADS)
 - **Command Line (Admin)**:
   ```cmd
   dir /R C:\Users\
@@ -881,7 +873,7 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
   ```
 - **Security Justification**: Adversaries attach hidden executables to benign files using alternate streams (e.g., `calc.txt:backdoor.exe`), hiding malware from standard Explorer views.
 
-### 5. Audit Unattended Setup & Sysprep Passwords
+### 4. Audit Unattended Setup & Sysprep Passwords
 - **PowerShell (Admin) Command**:
   ```powershell
   $answerFiles = @(
@@ -899,7 +891,7 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
   ```
 - **Remediation**: Record valid credentials for forensics question verification, then delete the answer files or scrub plain-text XML password tags.
 
-### 6. Verify Accessibility Binaries Against Sticky Keys Backdoors
+### 5. Verify Accessibility Binaries Against Sticky Keys Backdoors
 - **PowerShell (Admin) Audit**:
   ```powershell
   $cmdHash = (Get-FileHash C:\Windows\System32\cmd.exe).Hash
@@ -917,6 +909,20 @@ dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
   }
   ```
 - **Remediation**: If a binary matches `cmd.exe`, run `sfc /scanfile=C:\Windows\System32\<file>` to restore the genuine signed Microsoft accessibility binary.
+
+
+---
+
+## 1.12 Prohibited Media Files
+
+### 1. Prohibited Media Files Searching & Deletion
+Search through drive for unauthorized audio, video, picture, and game files (`.mp3`, `.mp4`, `.mov`, `.avi`, `.png`, `.jpg`, `.gif`, etc.):
+```cmd
+dir /s /b C:\*.mp3 C:\*.mp4 C:\*.mov C:\*.avi C:\*.wav C:\*.mkv
+```
+> [!CAUTION]
+> **Forensics Question Warning**: Sometimes a media or text file contains the answer to a forensics question! Always copy/read forensics answer candidates before deleting files. Once answers are submitted and verified, delete unauthorized media files.
+
 
 ---
 ---

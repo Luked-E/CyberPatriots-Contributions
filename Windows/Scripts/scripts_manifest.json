@@ -44,7 +44,7 @@
         {
           "id": "lusrmgr",
           "title": "Local Users and Groups (lusrmgr.msc)",
-          "description": "Audits local accounts, disables built-in Guest and default Administrator, removes unauthorized users from Administrators group, and clears PasswordNeverExpires flag.",
+          "description": "Manages Users, Audits local accounts, disables built-in Guest and default Administrator, and clears PasswordNeverExpires flag.",
           "script_path": "Sub_Scripts\\1_4_LocalUsersGroups.ps1",
           "options": []
         },

@@ -1,15 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $false)]
-    [string]$WindowsVersion = "Windows 11",
-
-    # Delete local accounts that are not on the authorized lists below (audit-only when omitted)
-    [Parameter(Mandatory = $false)]
-    [switch]$RemoveUnauthorizedUsers,
-
-    # Remove unauthorized members from the Administrators group (audit-only when omitted)
-    [Parameter(Mandatory = $false)]
-    [switch]$RemoveUnauthorizedAdmins
+    [string]$WindowsVersion = "Windows 11"
 )
 
 $ErrorActionPreference = 'Stop'
@@ -166,12 +158,7 @@ foreach ($u in Get-LocalUser) {
     if ($u.SID.Value -match $BuiltInSidPattern) { continue }
     if ($AuthorizedUsers -contains $u.Name) { continue }
 
-    if ($RemoveUnauthorizedUsers) {
-        Invoke-Step "Delete unauthorized user account $($u.Name)" { Remove-LocalUser -SID $u.SID }
-    } else {
-        $Findings++
-        Write-WarningLog -Message "Unauthorized user account found: $($u.Name) (use -RemoveUnauthorizedUsers to delete)" -ScriptName $ThisScript
-    }
+    Invoke-Step "Delete unauthorized user account $($u.Name)" { Remove-LocalUser -SID $u.SID }
 }
 
 # ---------------------------------------------------------------------------
@@ -213,14 +200,13 @@ if ($null -ne $AdminMembers) {
         if ($m.SID.Value -match '-500$') { continue }
         if ($AuthorizedAdmins -contains $memberName) { continue }
 
-        if ($RemoveUnauthorizedAdmins) {
-            Invoke-Step "Remove $memberName from Administrators group" {
-                Remove-LocalGroupMember -SID $AdminGroupSid -Member $m
-            }
-        } else {
-            $Findings++
-            Write-WarningLog -Message "Unauthorized Administrators member found: $($m.Name) (use -RemoveUnauthorizedAdmins to remove)" -ScriptName $ThisScript
+        Invoke-Step "Remove $memberName from Administrators group" {
+            Remove-LocalGroupMember -SID $AdminGroupSid -Member $m
         }
+        # } else {
+        #     $Findings++
+        #     Write-WarningLog -Message "Unauthorized Administrators member found: $($m.Name) (use -RemoveUnauthorizedAdmins to remove)" -ScriptName $ThisScript
+        # }
     }
 }
 
