@@ -11,7 +11,7 @@ A comprehensive, consolidated security guide and operational checklist for Cyber
   - [1.2 Control Panel](#control-panel)
   - [1.3 Local Security Policy (secpol.msc & gpedit.msc)](#local-security-policy-secpolmsc--gpeditmsc)
   - [1.4 Local Users and Groups (lusrmgr.msc)](#local-users-and-groups-lusrmgrmsc)
-  - [1.5 Computer Management (compmgnt.msc)](#computer-management-compmgntmsc)
+  - [1.5 Computer Management (compmgmt.msc)](#computer-management-compmgmtmsc)
   - [1.6 Windows Security & Threat Protection](#windows-security--threat-protection)
   - [1.7 Task Manager](#task-manager)
   - [1.8 Task Scheduler (taskschd.msc)](#task-scheduler-taskschdmsc)
@@ -318,145 +318,145 @@ Navigate to: `Security Settings` $\to$ `Local Policies` $\to$ `User Rights Assig
 Navigate to: `Security Settings` $\to$ `Local Policies` $\to$ `Security Options`
 ### Accounts
 
-* **Accounts: Administrator account status:** Disabled
-* **Accounts: Guest account status:** Disabled
-* **Accounts: Limit local account use of blank passwords to console logon only:** Enabled
-* **Accounts: Rename administrator account:** Administrator (or a custom secure name)
-* **Accounts: Rename guest account:** Guest (or a custom secure name)
-* **Accounts: Block Microsoft accounts:** Users can't add or log on with Microsoft accounts
+- **Accounts: Administrator account status:** Disabled
+- **Accounts: Guest account status:** Disabled
+- **Accounts: Limit local account use of blank passwords to console logon only:** Enabled
+- **Accounts: Rename administrator account:** Administrator (or a custom secure name)
+- **Accounts: Rename guest account:** Guest (or a custom secure name)
+- **Accounts: Block Microsoft accounts:** Users can't add or log on with Microsoft accounts
 
 ### Audit
 
-* **Audit: Shut down system immediately if unable to log security audits:** Enabled (or No Change if operational stability requires preventing unexpected shutdowns)
-* **Audit: Audit the access of global system objects:** No Change (or Enabled depending on strict compliance requirements)
-* **Audit: Audit the use of Backup and Restore privilege:** No Change (or Enabled)
-* **Audit: Force audit policy subcategory settings (Windows Vista or later):** Enabled
+- **Audit: Shut down system immediately if unable to log security audits:** Enabled (or No Change if operational stability requires preventing unexpected shutdowns)
+- **Audit: Audit the access of global system objects:** No Change (or Enabled depending on strict compliance requirements)
+- **Audit: Audit the use of Backup and Restore privilege:** No Change (or Enabled)
+- **Audit: Force audit policy subcategory settings (Windows Vista or later):** Enabled
 
 ### Devices
 
-* **Devices: Allow undock without having to log on:** Disabled
-* **Devices: Allowed to format and eject removable media:** Administrators
-* **Devices: Prevent users from installing printer drivers:** Enabled
-* **Devices: Restrict CD-ROM access to locally logged-on user only:** Enabled
-* **Devices: Restrict floppy access to locally logged-on user only:** Enabled
+- **Devices: Allow undock without having to log on:** Disabled
+- **Devices: Allowed to format and eject removable media:** Administrators
+- **Devices: Prevent users from installing printer drivers:** Enabled
+- **Devices: Restrict CD-ROM access to locally logged-on user only:** Enabled
+- **Devices: Restrict floppy access to locally logged-on user only:** Enabled
 
 ### Domain Member
 
-* **Domain member: Digitally encrypt or sign secure channel data (always):** Enabled
-* **Domain member: Digitally encrypt secure channel data (when possible):** Enabled
-* **Domain member: Digitally sign secure channel data (when possible):** Enabled
-* **Domain member: Require strong (Windows 2000 or later) session key:** Enabled
-* **Domain member: Disable machine account password changes:** Disabled
-* **Domain member: Maximum machine account password age:** 30 days
+- **Domain member: Digitally encrypt or sign secure channel data (always):** Enabled
+- **Domain member: Digitally encrypt secure channel data (when possible):** Enabled
+- **Domain member: Digitally sign secure channel data (when possible):** Enabled
+- **Domain member: Require strong (Windows 2000 or later) session key:** Enabled
+- **Domain member: Disable machine account password changes:** Disabled
+- **Domain member: Maximum machine account password age:** 30 days
 
 ### Interactive Logon
 
-* **Interactive logon: Do not display last user name:** Enabled
-* **Interactive logon: Do not require CTRL+ALT+DEL:** Disabled
-* **Interactive logon: Message text for users attempting to log on:** Set organizational legal warning banner (e.g., *"Authorized Use Only. All activities are monitored and logged."*)
-* **Interactive logon: Message title for users attempting to log on:** Set banner title (e.g., *"WARNING: Legal Notice"*)
-* **Interactive logon: Number of previous logons to cache (in case domain controller is not available):** 0 to 10 logons (Hardened baseline typically restricts or sets to 0/2 depending on environment)
-* **Interactive logon: Prompt user to change password before expiration:** 5 to 14 days
-* **Interactive logon: Display user information when the session is locked:** Do not display user information
-* **Interactive logon: Require Domain Controller authentication to logon:** Disabled
-* **Interactive logon: Require Windows Hello for Business or smart card:** Disabled
-* **Interactive logon: Smart card removal behavior:** No Action (or Lock Workstation)
-* **Interactive logon: Machine account lockout threshold:** 10 invalid logon attempts
-* **Interactive logon: Machine inactivity limit:** 900 seconds (15 minutes) or less
+- **Interactive logon: Do not display last user name:** Enabled
+- **Interactive logon: Do not require CTRL+ALT+DEL:** Disabled
+- **Interactive logon: Message text for users attempting to log on:** Set organizational legal warning banner (e.g., *"Authorized Use Only. All activities are monitored and logged."*)
+- **Interactive logon: Message title for users attempting to log on:** Set banner title (e.g., *"WARNING: Legal Notice"*)
+- **Interactive logon: Number of previous logons to cache (in case domain controller is not available):** 0 to 10 logons (Hardened baseline typically restricts or sets to 0/2 depending on environment)
+- **Interactive logon: Prompt user to change password before expiration:** 5 to 14 days
+- **Interactive logon: Display user information when the session is locked:** Do not display user information
+- **Interactive logon: Require Domain Controller authentication to logon:** Disabled
+- **Interactive logon: Require Windows Hello for Business or smart card:** Disabled
+- **Interactive logon: Smart card removal behavior:** No Action (or Lock Workstation)
+- **Interactive logon: Machine account lockout threshold:** 10 invalid logon attempts
+- **Interactive logon: Machine inactivity limit:** 900 seconds (15 minutes) or less
 
 ### Network Access and Security
 
-* **Microsoft network server: Digitally sign communications (always):** Enabled
-* **Microsoft network server: Digitally sign communications (if client agrees):** Enabled (or Disabled if requiring strict enforcement)
-* **Microsoft network client: Digitally sign communications (always):** Enabled
-* **Microsoft network client: Digitally sign communications (if server agrees):** Enabled
-* **Microsoft network client: Send unencrypted password to third-party SMB servers:** Disabled
-* **Microsoft network server: Disconnect clients when logon hours expire:** Enabled
-* **Network access: Allow anonymous SID/Name translation:** Disabled
-* **Network access: Do not allow anonymous enumeration of SAM accounts:** Enabled
-* **Network access: Do not allow anonymous enumeration of SAM accounts and shares:** Enabled
-* **Network access: Do not allow storage of passwords and credentials for network authentication:** Enabled
-* **Network access: Let Everyone permissions apply to anonymous users:** Disabled
-* **Network access: Named Pipes that can be accessed anonymously:** Enabled (Leave string box completely blank)
-* **Network access: Remotely accessible registry paths:** Enabled (Leave string box completely blank)
-* **Network access: Remotely accessible registry paths and sub-paths:** Enabled (Leave string box completely blank)
-* **Network access: Restrict anonymous access to Named Pipes and Shares:** Enabled
-* **Network access: Shares that can be accessed anonymously:** None / Null
-* **Network access: Sharing and security model for local accounts:** Classic - local users authenticate as themselves
-* **Network security: Do not store LAN Manager hash value on next password change:** Enabled
-* **Network security: LAN Manager authentication level:** Send NTLMv2 responses only. Refuse LM & NTLM.
-* **Network security: Minimum session security for NTLM SSP based clients:** Require 128-bit encryption
-* **Network security: Minimum session security for NTLM SSP based servers:** Require 128-bit encryption
-* **Network security: Force logoff when logon hours expire:** Disabled (or Enabled)
-* **Network security: Restrict NTLM: Incoming NTLM traffic:** Deny all / Deny all domain accounts
-* **Network security: Restrict NTLM: NTLM authentication in this domain:** Deny all / Deny accounts
+- **Microsoft network server: Digitally sign communications (always):** Enabled
+- **Microsoft network server: Digitally sign communications (if client agrees):** Enabled (or Disabled if requiring strict enforcement)
+- **Microsoft network client: Digitally sign communications (always):** Enabled
+- **Microsoft network client: Digitally sign communications (if server agrees):** Enabled
+- **Microsoft network client: Send unencrypted password to third-party SMB servers:** Disabled
+- **Microsoft network server: Disconnect clients when logon hours expire:** Enabled
+- **Network access: Allow anonymous SID/Name translation:** Disabled
+- **Network access: Do not allow anonymous enumeration of SAM accounts:** Enabled
+- **Network access: Do not allow anonymous enumeration of SAM accounts and shares:** Enabled
+- **Network access: Do not allow storage of passwords and credentials for network authentication:** Enabled
+- **Network access: Let Everyone permissions apply to anonymous users:** Disabled
+- **Network access: Named Pipes that can be accessed anonymously:** Enabled (Leave string box completely blank)
+- **Network access: Remotely accessible registry paths:** Enabled (Leave string box completely blank)
+- **Network access: Remotely accessible registry paths and sub-paths:** Enabled (Leave string box completely blank)
+- **Network access: Restrict anonymous access to Named Pipes and Shares:** Enabled
+- **Network access: Shares that can be accessed anonymously:** None / Null
+- **Network access: Sharing and security model for local accounts:** Classic - local users authenticate as themselves
+- **Network security: Do not store LAN Manager hash value on next password change:** Enabled
+- **Network security: LAN Manager authentication level:** Send NTLMv2 responses only. Refuse LM & NTLM.
+- **Network security: Minimum session security for NTLM SSP based clients:** Require 128-bit encryption
+- **Network security: Minimum session security for NTLM SSP based servers:** Require 128-bit encryption
+- **Network security: Force logoff when logon hours expire:** Disabled (or Enabled)
+- **Network security: Restrict NTLM: Incoming NTLM traffic:** Deny all / Deny all domain accounts
+- **Network security: Restrict NTLM: NTLM authentication in this domain:** Deny all / Deny accounts
 
 ### Recovery Console & Shutdown
 
-* **Recovery console: Allow automatic administrative logon:** Disabled
-* **Recovery console: Allow floppy copy and access to all drives and all folders:** Disabled
-* **Shutdown: Allow system to be shut down without having to log on:** Disabled
-* **Shutdown: Clear virtual memory pagefile:** Enabled (Recommended for high-security environments to prevent memory data remnants)
+- **Recovery console: Allow automatic administrative logon:** Disabled
+- **Recovery console: Allow floppy copy and access to all drives and all folders:** Disabled
+- **Shutdown: Allow system to be shut down without having to log on:** Disabled
+- **Shutdown: Clear virtual memory pagefile:** Enabled (Recommended for high-security environments to prevent memory data remnants)
 
 ### System Objects & System Cryptography
 
-* **System objects: Require case insensitivity for non-Windows subsystems:** Enabled
-* **System objects: Strengthen default permissions of internal system objects:** Enabled
-* **System cryptography: Use FIPS compliant algorithms for encryption, hashing, and signing:** Disabled (unless specifically required by federal/regulatory compliance)
-* **System settings: Use Certificate Rules on Windows Executables for Software Restriction Policies:** Disabled
+- **System objects: Require case insensitivity for non-Windows subsystems:** Enabled
+- **System objects: Strengthen default permissions of internal system objects:** Enabled
+- **System cryptography: Use FIPS compliant algorithms for encryption, hashing, and signing:** Disabled (unless specifically required by federal/regulatory compliance)
+- **System settings: Use Certificate Rules on Windows Executables for Software Restriction Policies:** Disabled
 
 ### User Account Control (UAC Group Policy Options)
 
-* **User Account Control: Admin Approval Mode for the Built-in Administrator account:** Enabled
-* **User Account Control: Allow UIAccess applications to prompt for elevation without using the secure desktop:** Disabled
-* **User Account Control: Behavior of the elevation prompt for administrators in Admin Approval Mode:** Prompt for consent on the secure desktop
-* **User Account Control: Behavior of the elevation prompt for standard users:** Automatically deny elevation requests
-* **User Account Control: Detect application installations and prompt for elevation:** Enabled
-* **User Account Control: Only elevate executables that are signed and validated:** Disabled (or Enabled depending on environment legacy software constraints)
-* **User Account Control: Run all administrators in Admin Approval Mode:** Enabled
-* **User Account Control: Switch to the secure desktop when prompting for elevation:** Enabled
-* **User Account Control: Virtualize file and registry write failures to per-user locations:** Enabled
+- **User Account Control: Admin Approval Mode for the Built-in Administrator account:** Enabled
+- **User Account Control: Allow UIAccess applications to prompt for elevation without using the secure desktop:** Disabled
+- **User Account Control: Behavior of the elevation prompt for administrators in Admin Approval Mode:** Prompt for consent on the secure desktop
+- **User Account Control: Behavior of the elevation prompt for standard users:** Automatically deny elevation requests
+- **User Account Control: Detect application installations and prompt for elevation:** Enabled
+- **User Account Control: Only elevate executables that are signed and validated:** Disabled (or Enabled depending on environment legacy software constraints)
+- **User Account Control: Run all administrators in Admin Approval Mode:** Enabled
+- **User Account Control: Switch to the secure desktop when prompting for elevation:** Enabled
+- **User Account Control: Virtualize file and registry write failures to per-user locations:** Enabled
 
 ### Safe Alternative settings
 
-* **Audit: Shut down system immediately if unable to log security audits**
-  * **Strict Security:** Enabled
-  * **Operational Alternative:** No Change (prevents unexpected system shutdowns if logging fails)
+- **Audit: Shut down system immediately if unable to log security audits**
+  - **Strict Security:** Enabled
+  - **Operational Alternative:** No Change (prevents unexpected system shutdowns if logging fails)
 
 
-* **Interactive logon: Number of previous logons to cache**
-  * **Strict Security:** 0 (forces live domain controller verification)
-  * **Operational Alternative:** 10 logons (allows remote or laptop users to log in when offline/disconnected from the network)
+- **Interactive logon: Number of previous logons to cache**
+  - **Strict Security:** 0 (forces live domain controller verification)
+  - **Operational Alternative:** 10 logons (allows remote or laptop users to log in when offline/disconnected from the network)
 
 
-* **Interactive logon: Prompt user to change password before expiration**
-  * **Strict Security:** 5 days
-  * **Operational Alternative:** 14 days (gives users more time to update passwords before lockout)
+- **Interactive logon: Prompt user to change password before expiration**
+  - **Strict Security:** 5 days
+  - **Operational Alternative:** 14 days (gives users more time to update passwords before lockout)
 
 
-* **Microsoft network server: Digitally sign communications (always)**
-  * **Strict Security:** Enabled
-  * **Operational Alternative:** Disabled (allows older legacy clients or non-Windows network storage devices to connect)
+- **Microsoft network server: Digitally sign communications (always)**
+  - **Strict Security:** Enabled
+  - **Operational Alternative:** Disabled (allows older legacy clients or non-Windows network storage devices to connect)
 
 
-* **Shutdown: Clear virtual memory pagefile**
-  * **Strict Security:** Enabled (wipes residual data on shutdown, but increases shutdown times)
-  * **Operational Alternative:** Disabled (standard behavior for faster reboots)
+- **Shutdown: Clear virtual memory pagefile**
+  - **Strict Security:** Enabled (wipes residual data on shutdown, but increases shutdown times)
+  - **Operational Alternative:** Disabled (standard behavior for faster reboots)
 
 
-* **User Account Control (UAC): Behavior of the elevation prompt for administrators**
-  * **Strict Security:** Prompt for credentials on the secure desktop
-  * **Operational Alternative:** Prompt for consent on the secure desktop
+- **User Account Control (UAC): Behavior of the elevation prompt for administrators**
+  - **Strict Security:** Prompt for credentials on the secure desktop
+  - **Operational Alternative:** Prompt for consent on the secure desktop
 
 
-* **User Account Control (UAC): Behavior of the elevation prompt for standard users**
-  * **Strict Security:** Automatically deny elevation requests
-  * **Operational Alternative:** Prompt for credentials (allows standard users to type an admin password to run tools)
+- **User Account Control (UAC): Behavior of the elevation prompt for standard users**
+  - **Strict Security:** Automatically deny elevation requests
+  - **Operational Alternative:** Prompt for credentials (allows standard users to type an admin password to run tools)
 
 
-* **User Account Control (UAC): Only elevate executables that are signed and validated**
-  * **Strict Security:** Enabled
-  * **Operational Alternative:** Disabled (prevents breaking older unsigned software or custom in-house corporate scripts)
+- **User Account Control (UAC): Only elevate executables that are signed and validated**
+  - **Strict Security:** Enabled
+  - **Operational Alternative:** Disabled (prevents breaking older unsigned software or custom in-house corporate scripts)
 
 ---
 
@@ -517,9 +517,9 @@ Access via: `Win + R` $\to$ `lusrmgr.msc` $\to$ Enter
 
 ---
 
-## 1.5 Computer Management (compmgnt.msc)
+## 1.5 Computer Management (compmgmt.msc)
 
-Access via: `Win + R` $\to$ `compmgnt.msc` $\to$ Enter
+Access via: `Win + R` $\to$ `compmgmt.msc` $\to$ Enter
 
 ### 1. Disk Management & File System Integrity
 - **Path**: `Storage` $\to$ `Disk Management`.
@@ -564,8 +564,8 @@ Access via: `Win + R` $\to$ `compmgnt.msc` $\to$ Enter
   ```
 
 ### 5. Integrated Share Management via Computer Management
-- **Path (`compmgnt.msc` GUI)**:
-  - `compmgnt.msc` $\to$ `System Tools` $\to$ `Shared Folders`.
+- **Path (`compmgmt.msc` GUI)**:
+  - `compmgmt.msc` $\to$ `System Tools` $\to$ `Shared Folders`.
   - **Shares**: Right-click any unauthorized non-default share $\to$ Click **Stop Sharing**.
   - **Sessions**: Right-click rogue active network connections $\to$ Click **Close Session**.
   - **Open Files**: View files currently locked or accessed over the network by remote machines.
